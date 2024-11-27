@@ -1,0 +1,42 @@
+.home {
+  width: 100vw;
+  height: 100vh;
+
+  .tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 10px 20px;
+    z-index: 9;
+
+    .tools-item-config {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      .tools-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+
+      .tools-item-text {
+        font-size: 16px;
+        margin-left: 6px;
+        color: #333;
+      }
+    }
+  }
+
+  .canvas {
+    width: 100vh;
+    height: 100vh;
+  }
+}
