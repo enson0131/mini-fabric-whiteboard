@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
 
+console.log(fabric.version);
+console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
+
 import { ColorPicker, GetProp, Radio, RadioChangeEvent } from "antd";
 import { ColorPickerProps } from "antd/es/color-picker";
 
@@ -44,6 +47,36 @@ interface ITools {
 
 type Color = GetProp<ColorPickerProps, "value">;
 
+// 自定义 EraserBrush TODO 未生效
+class EraserBrush extends fabric.PencilBrush {
+  canvas: fabric.Canvas;
+  constructor(canvas: fabric.Canvas) {
+    super(canvas);
+    this.canvas = canvas;
+  }
+  _prepareCanvas() {
+    const ctx = this.canvas.contextTop;
+    ctx.globalCompositeOperation = "destination-out"; // 设置擦除模式
+  }
+
+  _resetCanvas() {
+    const ctx = this.canvas.contextTop;
+    ctx.globalCompositeOperation = "source-over"; // 恢复正常模式
+  }
+
+  onMouseDown(...args) {
+    this._prepareCanvas();
+    super.onMouseDown(...args);
+  }
+
+  onMouseUp(...args) {
+    super.onMouseUp(...args);
+    this._resetCanvas();
+    this.canvas.clearContext(this.canvas.contextTop); // 清除临时绘制内容
+    this.canvas.renderAll();
+  }
+}
+
 function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
   const canvasInstance = useRef<fabric.Canvas | null>(null);
@@ -64,6 +97,7 @@ function Home() {
   };
 
   const initCanvasModeReset = () => {
+    canvasInstance.current.contextTop.globalCompositeOperation = "source-over";
     canvasInstance.current.isDrawingMode = false;
     // 禁用选择模式
     canvasInstance.current.selection = false;
@@ -102,36 +136,42 @@ function Home() {
         break;
       case IDrawTypes.line:
         initCanvasModeReset();
-
         break;
       case IDrawTypes.circle:
+        break;
+      case IDrawTypes.rect:
+        initCanvasModeReset();
+        const rect = new fabric.Rect({
+          left: 200, //距离左边的距离
+          top: 200, //距离上边的距离
+          fill: "green", //填充的颜色
+          width: 200, //矩形宽度
+          height: 200, //矩形高度
+        });
+        canvasInstance.current.add(rect);
         break;
       case IDrawTypes.triangle:
         break;
       case IDrawTypes.text:
         break;
       case IDrawTypes.eraser:
-        // TODO enson 有问题
         initCanvasModeReset();
+        canvasInstance.current.freeDrawingBrush = new EraserBrush(
+          canvasInstance.current
+        );
+        // console.log(
+        //   `canvasInstance.current.freeDrawingBrush.contextTop,,`,
+        //   canvasInstance.current.freeDrawingBrush
+        // );
+        // canvasInstance.current.freeDrawingBrush.canvas.contextTop.globalCompositeOperation =
+        //   "destination-out";
 
+        // canvasInstance.current.freeDrawingBrush.canvas.contextContainer.globalCompositeOperation =
+        //   "destination-out";
         canvasInstance.current.isDrawingMode = true;
-
         // 设置橡皮擦大小
         canvasInstance.current.freeDrawingBrush.width = 4;
-        canvasInstance.current.freeDrawingBrush.color =
-          "rgba(255, 255, 255, 1)"; // 模拟透明效果
 
-        // 监听绘制结束事件，移除路径下的对象
-        canvasInstance.current.on("path:created", (event) => {
-          const path = event.path;
-          canvasInstance.current.remove(path); // 绘制完后隐藏路径
-
-          canvasInstance.current.forEachObject((obj) => {
-            if (obj.intersectsWithObject(path)) {
-              canvasInstance.current.remove(obj); // 如果路径和对象相交，删除对象
-            }
-          });
-        });
         break;
     }
   };
@@ -174,11 +214,11 @@ function Home() {
               <Radio.Button value={IDrawTypes.select}>Select</Radio.Button>
               <Radio.Button value={IDrawTypes.pencil}>Pencil</Radio.Button>
               <Radio.Button value={IDrawTypes.line}>Line</Radio.Button>
+              <Radio.Button value={IDrawTypes.rect}>Rect</Radio.Button>
               <Radio.Button value={IDrawTypes.circle}>Circle</Radio.Button>
               <Radio.Button value={IDrawTypes.triangle}>Triangle</Radio.Button>
               <Radio.Button value={IDrawTypes.text}>Text</Radio.Button>
               <Radio.Button value={IDrawTypes.eraser}>Eraser</Radio.Button>
-              <Radio.Button value={IDrawTypes.text}>Text</Radio.Button>
             </Radio.Group>
           </div>
         );
@@ -193,9 +233,12 @@ function Home() {
 
     return () => {
       canvasInstance.current?.dispose();
+      // canvasInstance.current.remove;
       canvasInstance.current = null;
     };
   }, []);
+
+  // useEffect
 
   return (
     <>

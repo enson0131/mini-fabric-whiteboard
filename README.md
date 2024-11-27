@@ -16,3 +16,6 @@ yarn dev
 3. https://github1s.com/CC4J/fabric-drawing-board/tree/master
 4. https://juejin.cn/post/6979135887485435918?searchId=20241127103227E0EBB2688A4372FD09E4
 5. https://juejin.cn/post/6993801903121367048?searchId=20241127103227E0EBB2688A4372FD09E4
+6. https://fabricjs.com/demos/free-drawing/
+7. https://www.imgeek.net/article/825363377
+8. https://gitee.com/dhb_bo/fabricjs-demo
