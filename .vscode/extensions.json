@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "stylelint.vscode-stylelint",
+    "wangzy.sneak-mark",
+    "streetsidesoftware.code-spell-checker",
+    "ambar.bundle-size"
+  ]
+}
