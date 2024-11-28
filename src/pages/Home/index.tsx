@@ -258,7 +258,7 @@ function Home() {
         x: event.e.clientX,
         y: event.e.clientY,
         style: {
-          color: drawConfig.strokeColor,
+          color: drawConfig.strokeColor as string,
         },
       });
 
