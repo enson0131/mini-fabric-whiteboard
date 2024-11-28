@@ -2,13 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
 import "@/lib/eraser_brush.mixin.js";
-
-console.log(fabric.version);
-console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
-
 import { ColorPicker, GetProp, Radio, RadioChangeEvent } from "antd";
 import { ColorPickerProps } from "antd/es/color-picker";
 import { createInputEle } from "./utils";
+
+console.log(fabric.version);
+console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
 
 enum IToolTypes {
   strokeColor,
