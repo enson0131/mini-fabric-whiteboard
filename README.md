@@ -9,6 +9,9 @@ yarn
 yarn dev
 ```
 
+# 坑点
+1. fabric 默认没有支持擦出功能，可以在 npm 包里面的 mixin 获取对应的擦出功能包
+
 
 # 参考
 1. fabric.js文档：http://fabricjs.com/docs/

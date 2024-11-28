@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
+import "@/lib/eraser_brush.mixin.js";
 
 console.log(fabric.version);
 console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
@@ -46,36 +47,6 @@ interface ITools {
 }
 
 type Color = GetProp<ColorPickerProps, "value">;
-
-// 自定义 EraserBrush TODO 未生效
-class EraserBrush extends fabric.PencilBrush {
-  canvas: fabric.Canvas;
-  constructor(canvas: fabric.Canvas) {
-    super(canvas);
-    this.canvas = canvas;
-  }
-  _prepareCanvas() {
-    const ctx = this.canvas.contextTop;
-    ctx.globalCompositeOperation = "destination-out"; // 设置擦除模式
-  }
-
-  _resetCanvas() {
-    const ctx = this.canvas.contextTop;
-    ctx.globalCompositeOperation = "source-over"; // 恢复正常模式
-  }
-
-  onMouseDown(...args) {
-    this._prepareCanvas();
-    super.onMouseDown(...args);
-  }
-
-  onMouseUp(...args) {
-    super.onMouseUp(...args);
-    this._resetCanvas();
-    this.canvas.clearContext(this.canvas.contextTop); // 清除临时绘制内容
-    this.canvas.renderAll();
-  }
-}
 
 function Home() {
   const canvasRef = useRef<HTMLCanvasElement>(null!);
@@ -130,6 +101,9 @@ function Home() {
 
         // 启用画笔模式
         canvasInstance.current.isDrawingMode = true;
+        canvasInstance.current.freeDrawingBrush = new fabric.PencilBrush(
+          canvasInstance.current
+        );
         canvasInstance.current.freeDrawingBrush.color =
           drawConfig.strokeColor as string;
         canvasInstance.current.freeDrawingBrush.width = 5;
@@ -156,7 +130,7 @@ function Home() {
         break;
       case IDrawTypes.eraser:
         initCanvasModeReset();
-        canvasInstance.current.freeDrawingBrush = new EraserBrush(
+        canvasInstance.current.freeDrawingBrush = new fabric.EraserBrush(
           canvasInstance.current
         );
         // console.log(
