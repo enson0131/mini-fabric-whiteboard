@@ -23,8 +23,10 @@ yarn dev
 7. https://www.imgeek.net/article/825363377
 8. https://gitee.com/dhb_bo/fabricjs-demo
 
-
-## 如何实现擦除功能
+## 如何实现全局漫游
+## 如何实现插入图片
+## 如何实现插入文本
 ## 如何实现撤销重做功能
+## 如何实现擦除功能
 ## 如何实现编辑功能
 ## 书写性能优化
