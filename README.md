@@ -9,10 +9,8 @@ https://enson0131.github.io/white-board/
 # 启动
 
 ```shell
-
 yarn
 yarn dev
-
 ```
 
 # 坑点
