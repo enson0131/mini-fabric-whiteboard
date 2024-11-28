@@ -8,6 +8,7 @@ console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可
 
 import { ColorPicker, GetProp, Radio, RadioChangeEvent } from "antd";
 import { ColorPickerProps } from "antd/es/color-picker";
+import { createInputEle } from "./utils";
 
 enum IToolTypes {
   strokeColor,
@@ -53,8 +54,8 @@ function Home() {
   const canvasInstance = useRef<fabric.Canvas | null>(null);
   const [active, setActive] = useState<IDrawTypes>(IDrawTypes.select);
   const [drawConfig, setDrawConfig] = useState({
-    strokeColor: "red" as Color,
-    fillColor: "#ffffff" as Color,
+    strokeColor: "#dadada" as Color,
+    fillColor: "#c66e7e" as Color,
   });
 
   const dispatch = (
@@ -110,23 +111,45 @@ function Home() {
         break;
       case IDrawTypes.line:
         initCanvasModeReset();
+        const line = new fabric.Line([50, 50, 200, 200], {
+          stroke: drawConfig.strokeColor, //填充的颜色
+          strokeWidth: 5,
+        });
+        canvasInstance.current.add(line);
         break;
       case IDrawTypes.circle:
+        const circle = new fabric.Circle({
+          left: 200, //距离左边的距离
+          top: 200, //距离上边的距离
+          fill: drawConfig.fillColor, //填充的颜色
+          radius: 75,
+        });
+        canvasInstance.current.add(circle);
         break;
       case IDrawTypes.rect:
         initCanvasModeReset();
         const rect = new fabric.Rect({
           left: 200, //距离左边的距离
           top: 200, //距离上边的距离
-          fill: "green", //填充的颜色
+          fill: drawConfig.fillColor, //填充的颜色
           width: 200, //矩形宽度
           height: 200, //矩形高度
         });
         canvasInstance.current.add(rect);
         break;
       case IDrawTypes.triangle:
+        initCanvasModeReset();
+        const triangle = new fabric.Triangle({
+          left: 200, //距离左边的距离
+          top: 200, //距离上边的距离
+          fill: drawConfig.fillColor, //填充的颜色
+          width: 200, //矩形宽度
+          height: 200, //矩形高度
+        });
+        canvasInstance.current.add(triangle);
         break;
       case IDrawTypes.text:
+        initCanvasModeReset();
         break;
       case IDrawTypes.eraser:
         initCanvasModeReset();
@@ -213,6 +236,52 @@ function Home() {
   }, []);
 
   // useEffect
+
+  useEffect(() => {
+    // var itext = new fabric.IText('This is a IText object', {
+    //   left: 100,
+    //   top: 300,
+    //   fill: '#D81B60',
+    //   strokeWidth: 2,
+    //   stroke: "#880E4F",
+    // });
+    canvasInstance.current.on("mouse:dblclick", async function (event) {
+      if (event.target) {
+        return;
+      }
+
+      if (active !== IDrawTypes.text) return;
+
+      const pointer = canvasInstance.current.getPointer(event.e);
+
+      const inputVar = await createInputEle({
+        x: event.e.clientX,
+        y: event.e.clientY,
+        style: {
+          color: drawConfig.strokeColor,
+        },
+      });
+
+      const itext = new fabric.IText(inputVar, {
+        left: pointer.x,
+        top: pointer.y,
+        fill: drawConfig.fillColor,
+        stroke: drawConfig.strokeColor as string,
+        fontSize: 16,
+        styles: {
+          "font-family":
+            "Inter, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          "font-weight": "400",
+        },
+      });
+
+      canvasInstance.current.add(itext);
+    });
+
+    return () => {
+      canvasInstance.current?.off("mouse:dblclick");
+    };
+  }, [active, drawConfig]);
 
   return (
     <>
