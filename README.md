@@ -4,7 +4,7 @@
 
 # 访问链接
 
-https://enson0131.github.io/white-board/
+https://enson0131.github.io/mini-fabric-whiteboard/
 
 # 启动
 
@@ -12,6 +12,10 @@ https://enson0131.github.io/white-board/
 yarn
 yarn dev
 ```
+
+# 功能
+- 通过 option + 鼠标 拖动画布
+- 滚动鼠标滚轮缩放画布
 
 # 坑点
 1. fabric 默认没有支持擦出功能，可以在 npm 包里面的 mixin 获取对应的擦出功能包
@@ -26,8 +30,14 @@ yarn dev
 6. https://fabricjs.com/demos/free-drawing/
 7. https://www.imgeek.net/article/825363377
 8. https://gitee.com/dhb_bo/fabricjs-demo
+9. https://antv.vision/infinite-canvas-tutorial/zh/guide/lesson-006
+10. https://medium.com/@sagarmohanty2k00/creating-a-digital-whiteboard-element-with-react-js-d4924ee2c58e
+11. https://github.com/thfrei/infinite-drawing-canvas
 
 ## 如何实现全局漫游
+
+
+
 ## 如何实现插入图片
 ## 如何实现插入文本
 ## 如何实现撤销重做功能
