@@ -33,6 +33,7 @@ yarn dev
 9. https://antv.vision/infinite-canvas-tutorial/zh/guide/lesson-006
 10. https://medium.com/@sagarmohanty2k00/creating-a-digital-whiteboard-element-with-react-js-d4924ee2c58e
 11. https://github.com/thfrei/infinite-drawing-canvas
+12. https://keelii.com/2021/05/09/fabricjs-internals
 
 ## 如何实现全局漫游
 
