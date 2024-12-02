@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
 import "@/lib/eraser_brush.mixin.js";
-import { ColorPicker, GetProp, Radio, RadioChangeEvent } from "antd";
+import {
+  ColorPicker,
+  GetProp,
+  message,
+  Radio,
+  RadioChangeEvent,
+  Upload,
+  UploadProps,
+} from "antd";
 import { ColorPickerProps } from "antd/es/color-picker";
 import { createInputEle } from "./utils";
 
@@ -39,6 +47,7 @@ enum IDrawTypes {
   triangle,
   text,
   eraser,
+  image,
 }
 
 interface ITools {
@@ -84,11 +93,12 @@ function Home() {
     }
 
     setActive(e.target.value);
+    initCanvasModeReset();
 
     switch (e.target.value) {
       case IDrawTypes.select:
         console.log("切换到 Select 模式");
-        initCanvasModeReset();
+
         canvasInstance.current.selection = true;
         canvasInstance.current.forEachObject((obj) => {
           obj.selectable = true;
@@ -96,8 +106,6 @@ function Home() {
         break;
       case IDrawTypes.pencil:
         console.log("切换到 Pencil 模式");
-
-        initCanvasModeReset();
 
         // 启用画笔模式
         canvasInstance.current.isDrawingMode = true;
@@ -109,7 +117,6 @@ function Home() {
         canvasInstance.current.freeDrawingBrush.width = 5;
         break;
       case IDrawTypes.line:
-        initCanvasModeReset();
         const line = new fabric.Line([50, 50, 200, 200], {
           stroke: drawConfig.strokeColor, //填充的颜色
           strokeWidth: 5,
@@ -126,7 +133,6 @@ function Home() {
         canvasInstance.current.add(circle);
         break;
       case IDrawTypes.rect:
-        initCanvasModeReset();
         const rect = new fabric.Rect({
           left: 200, //距离左边的距离
           top: 200, //距离上边的距离
@@ -137,7 +143,6 @@ function Home() {
         canvasInstance.current.add(rect);
         break;
       case IDrawTypes.triangle:
-        initCanvasModeReset();
         const triangle = new fabric.Triangle({
           left: 200, //距离左边的距离
           top: 200, //距离上边的距离
@@ -148,10 +153,10 @@ function Home() {
         canvasInstance.current.add(triangle);
         break;
       case IDrawTypes.text:
-        initCanvasModeReset();
+        break;
+      case IDrawTypes.image:
         break;
       case IDrawTypes.eraser:
-        initCanvasModeReset();
         canvasInstance.current.freeDrawingBrush = new fabric.EraserBrush(
           canvasInstance.current
         );
@@ -167,9 +172,36 @@ function Home() {
         canvasInstance.current.isDrawingMode = true;
         // 设置橡皮擦大小
         canvasInstance.current.freeDrawingBrush.width = 4;
-
         break;
     }
+  };
+
+  const uploadProps: UploadProps = {
+    showUploadList: false,
+    beforeUpload: (file) => {
+      const isPNG = file.type === "image/png";
+      if (!isPNG) {
+        message.error(`${file.name} is not a png file`);
+      }
+      return isPNG || Upload.LIST_IGNORE;
+    },
+    customRequest: ({ file }) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const fabricImg = new fabric.Image(img, {
+            left: 200,
+            top: 200,
+            scaleX: 0.5,
+            scaleY: 0.5,
+          });
+          canvasInstance.current.add(fabricImg);
+        };
+      };
+      reader.readAsDataURL(file);
+    },
   };
 
   const tools: Array<ITools> = [
@@ -214,6 +246,9 @@ function Home() {
               <Radio.Button value={IDrawTypes.circle}>Circle</Radio.Button>
               <Radio.Button value={IDrawTypes.triangle}>Triangle</Radio.Button>
               <Radio.Button value={IDrawTypes.text}>Text</Radio.Button>
+              <Radio.Button value={IDrawTypes.image}>
+                <Upload {...uploadProps}>Image</Upload>
+              </Radio.Button>
               <Radio.Button value={IDrawTypes.eraser}>Eraser</Radio.Button>
             </Radio.Group>
           </div>

@@ -60,14 +60,21 @@ yarn dev
 ![alt text](image.png)
 
 ## 如何实现插入图片
+通过 imageSmoothingEnabled 设置为 true 加了这个属性，用于对缩放后的图片进行平滑处理
+再通过 drawImage 绘制图片
+
 ## 如何实现插入文本
-## 如何实现撤销重做功能
+
 ## 如何实现擦除功能
+
+## 如何实现撤销重做功能
+
 ## 如何实现编辑功能
 
 ## 书写性能优化
 
 - https://juejin.cn/post/6844903834179878925#heading-2
+
 
 
 ## 计算机图形学
