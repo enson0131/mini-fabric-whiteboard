@@ -242,8 +242,8 @@ function Home() {
       if (this.isDragging) {
         const e = opt.e;
         const vpt = this.viewportTransform;
-        vpt[4] += e.clientX - this.lastPosX;
-        vpt[5] += e.clientY - this.lastPosY;
+        vpt[4] += e.clientX - this.lastPosX; // 俩个点的位置差
+        vpt[5] += e.clientY - this.lastPosY; // 俩个点的位置差
         this.requestRenderAll();
         this.lastPosX = e.clientX;
         this.lastPosY = e.clientY;
@@ -257,7 +257,6 @@ function Home() {
       this.selection = true;
     });
 
-    // canvasInstance.current.on("mouse:move", checkCanvasBounds);
     canvas.on("mouse:wheel", function (opt) {
       const delta = opt.e.deltaY;
       let zoom = canvas.getZoom();
