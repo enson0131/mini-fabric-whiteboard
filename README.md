@@ -49,13 +49,15 @@ yarn dev
 
 - https://juejin.cn/post/7142664492122374158?from=search-suggest
 
-## 如何实现中心点缩放
+## 如何实现缩放画布
 
-### 如何实现缩放
+1 先修改 viewportTransform[0]、viewportTransform[3] 达到缩放横纵坐标的值
+2 通过修改 viewportTransform[4]、viewportTransform[5] 达到平移画布的效果，确保缩放的中心点不变
+3 然后重新渲染画布就好了
 
-### 如何实现中心点缩放
+- https://developer.mozilla.org/zh-CN/docs/Web/SVG/Attribute/transform#matrix
 
-
+![alt text](image.png)
 
 ## 如何实现插入图片
 ## 如何实现插入文本
