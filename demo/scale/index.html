@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scale 验证</title>
+    <style>
+      #canvas {
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script>
+      const dpr = window.devicePixelRatio || 1;
+      const canvas = document.getElementById("canvas");
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      ctx.save();
+      //   ctx.transform(1, 0, 0, 1, 2, 2);
+      ctx.strokeRect(0, 0, 100, 100);
+      ctx.restore();
+
+      ctx.save();
+      ctx.transform(3, 0, 0, 3, 0, 0);
+      ctx.strokeRect(100, 100, 100, 100);
+      ctx.restore();
+    </script>
+  </body>
+</html>

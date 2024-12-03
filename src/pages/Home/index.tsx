@@ -200,7 +200,7 @@ function Home() {
           canvasInstance.current.add(fabricImg);
         };
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file as Blob);
     },
   };
 

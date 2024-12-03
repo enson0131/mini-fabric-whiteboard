@@ -64,8 +64,11 @@ yarn dev
 再通过 drawImage 绘制图片
 
 ## 如何实现插入文本
+双击创建一个 input 输入框，失去焦点后获取 input 的值，然后将文本添加到画布上
 
 ## 如何实现擦除功能
+1 通过设置 globalCompositeOperation 为 destination-out 实现擦除功能
+2 使用 clip - https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/clip，目前 fabric.js 使用的是这个方式
 
 ## 如何实现撤销重做功能
 
