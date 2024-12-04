@@ -26,7 +26,7 @@ class Rect extends FabricObject {
    */
   _render(ctx: CanvasRenderingContext2D) {
     const { width: w, height: h } = this;
-    const x = -w / 2;
+    const x = -w / 2; // 默认的坐标系是以对象的中心点为参考的，而非左上角。这种设计有助于在旋转和缩放时保持计算简单且一致。
     const y = -h / 2;
     const rx = this.rx ? Math.min(this.rx, w / 2) : 0;
     const ry = this.ry ? Math.min(this.ry, h / 2) : 0;

@@ -70,9 +70,19 @@ yarn dev
 1 通过设置 globalCompositeOperation 为 destination-out 实现擦除功能
 2 使用 clip - https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/clip，目前 fabric.js 使用的是这个方式
 
+## 如何实现编辑功能
+
+### 如何实现选中状态
+
+在 Fabric 中, 在激活某个元素时，通常会有一个边框显示在元素周围，这个就是包围盒。
+
+常见的有 OBB、AABB、球模型 包围盒。
+
+其中 AABB 最为简单，应用也最为广泛，它的全称是 Axis-aligned bounding box，也就是边平行于坐标轴的包围盒，理解和计算起来都非常容易，就是取物体所有顶点（也可叫做离散点）坐标的最大最小值，就像下面这样
+
+
 ## 如何实现撤销重做功能
 
-## 如何实现编辑功能
 
 ## 书写性能优化
 
@@ -82,3 +92,8 @@ yarn dev
 
 ## 计算机图形学
 - https://www.bilibili.com/video/BV1X7411F744/
+
+
+## 好文
+- https://github.com/lgq627628/2020
+- https://www.yuque.com/r/antv/books?q=

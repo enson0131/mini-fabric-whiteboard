@@ -86,4 +86,26 @@ export class Util {
       img.src = url;
     });
   }
+
+  /**
+   * 实现一个 AABB 包围盒
+   * @param points
+   */
+  static makeBoundingBoxFromPoints(points: any[]) {
+    const xPoints = points.map((p) => p.x);
+    const yPoints = points.map((p) => p.y);
+    const minX = Math.min(...xPoints);
+    const minY = Math.min(...yPoints);
+    const maxX = Math.max(...xPoints);
+    const maxY = Math.max(...yPoints);
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    return {
+      left: minX,
+      top: minY,
+      width,
+      height,
+    };
+  }
 }
