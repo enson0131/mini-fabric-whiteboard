@@ -3,6 +3,12 @@ import { Util } from "./Util";
 export class FabricObject {
   public type: string; // 对象类型
   public visible: boolean; // 是否可见
+
+  /** 默认水平变换中心 left | right | center */
+  public originX: string = "center";
+  /** 默认垂直变换中心 top | bottom | center */
+  public originY: string = "center";
+
   public active: boolean; // 是否激活, 选中状态
   public top: number; // 对象左上角 y 坐标
   public left: number; // 对象左上角 x 坐标
@@ -39,6 +45,24 @@ export class FabricObject {
   public cornerSize: number = 12;
   /** 通过像素来检测物体而不是通过包围盒 */
   public perPixelTargetFind: boolean = false;
+
+  /** 激活态边框颜色 */
+  public borderColor: string = "red";
+  /** 激活态控制点颜色 */
+  public cornerColor: string = "red";
+  /** 物体默认填充颜色 */
+  public fill: string = "rgb(0,0,0)";
+
+  /** 左右镜像，比如反向拉伸控制点 */
+  public flipX: boolean = false;
+  /** 上下镜像，比如反向拉伸控制点 */
+  public flipY: boolean = false;
+
+  // 公共属性
+  public stateProperties: string[] =
+    `top,left,width,height,scaleX,scaleY,flipX,flipY,angle,cornerSize,fill,originX,originY,stroke,strokeWidth,borderWidth,transformMatrix,visible`.split(
+      ","
+    );
 
   constructor(options) {
     this.initialize(options);
@@ -154,5 +178,45 @@ export class FabricObject {
   /** 获取当前大小，包含缩放效果 */
   getHeight(): number {
     return this.height * this.scaleY;
+  }
+
+  get(key: string) {
+    return this[key];
+  }
+
+  /**
+   * 转成基础标准对象，方便序列化
+   * @param propertiesToInclude 你可能需要添加一些额外的自定义属性
+   * @returns 标准对象
+   */
+  toObject(propertiesToInclude = []) {
+    // 保存时的数字精度
+    const NUM_FRACTION_DIGITS = 2;
+
+    const object = {
+      type: this.type,
+      originX: this.originX,
+      originY: this.originY,
+      left: Util.toFixed(this.left, NUM_FRACTION_DIGITS),
+      top: Util.toFixed(this.top, NUM_FRACTION_DIGITS),
+      width: Util.toFixed(this.width, NUM_FRACTION_DIGITS),
+      height: Util.toFixed(this.height, NUM_FRACTION_DIGITS),
+      fill: this.fill,
+      stroke: this.stroke,
+      strokeWidth: this.strokeWidth,
+      scaleX: Util.toFixed(this.scaleX, NUM_FRACTION_DIGITS),
+      scaleY: Util.toFixed(this.scaleY, NUM_FRACTION_DIGITS),
+      angle: Util.toFixed(this.angle, NUM_FRACTION_DIGITS),
+      flipX: this.flipX,
+      flipY: this.flipY,
+      visible: this.visible,
+      hasControls: this.hasControls,
+      hasRotatingPoint: this.hasRotatingPoint,
+      transparentCorners: this.transparentCorners,
+      perPixelTargetFind: this.perPixelTargetFind,
+    };
+
+    Util.populateWithProperties(this, object, propertiesToInclude);
+    return object;
   }
 }

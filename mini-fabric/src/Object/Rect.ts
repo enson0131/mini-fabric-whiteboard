@@ -13,7 +13,12 @@ export class Rect extends FabricObject {
 
   constructor(options) {
     super(options);
+    this._initStateProperties();
     this._initRxRy(options);
+  }
+
+  _initStateProperties() {
+    this.stateProperties = this.stateProperties.concat(["rx", "ry"]);
   }
 
   _initRxRy(options) {
@@ -86,5 +91,12 @@ export class Rect extends FabricObject {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
+  }
+
+  toObject(propertiesToInclude) {
+    return Object.assign(super.toObject(propertiesToInclude), {
+      rx: this.get("rx") || 0,
+      ry: this.get("ry") || 0,
+    });
   }
 }

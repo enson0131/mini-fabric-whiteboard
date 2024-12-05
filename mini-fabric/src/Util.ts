@@ -108,4 +108,23 @@ export class Util {
       height,
     };
   }
+
+  /** 和原生的 toFixed 一样，只不过返回的数字 */
+  static toFixed(number: number | string, fractionDigits: number): number {
+    return parseFloat(Number(number).toFixed(fractionDigits));
+  }
+
+  /**
+   * 把源对象的某些属性赋值给目标对象
+   * @param source 源对象
+   * @param destination 目标对象
+   * @param properties 需要赋值的属性
+   */
+  static populateWithProperties(source, destination, properties) {
+    if (properties && Array.isArray(properties)) {
+      for (let i = 0, len = properties.length; i < len; i++) {
+        destination[properties[i]] = source[properties[i]];
+      }
+    }
+  }
 }

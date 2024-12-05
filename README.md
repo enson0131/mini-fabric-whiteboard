@@ -70,8 +70,6 @@ yarn dev
 1 通过设置 globalCompositeOperation 为 destination-out 实现擦除功能
 2 使用 clip - https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/clip，目前 fabric.js 使用的是这个方式
 
-## 如何实现编辑功能
-
 ### 如何实现元素 hover 状态
 
 在 Fabric 中, 在激活某个元素时，通常会有一个边框显示在元素周围，这个就是包围盒。
@@ -110,6 +108,7 @@ yarn dev
 
 不过在 计算机图形学中，通过 `向量叉乘` 的方式来判断线段是否相交
 
+## 如何实现编辑功能
 
 ## 如何实现撤销重做功能
 

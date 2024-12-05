@@ -5,7 +5,7 @@ import { Rect } from "./Object/Rect";
 // import { FabricImage } from "./FabricImage";
 import { Util } from "./Util";
 
-class fabric {
+export class fabric {
   static Canvas = Canvas;
   static FabricObject = FabricObject;
   static Rect = Rect;
