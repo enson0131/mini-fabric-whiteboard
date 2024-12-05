@@ -13,14 +13,45 @@ export class FabricObject {
   public scaleY: number; // Y轴 缩放比例
   public angle: number; // 旋转角度
 
-  public rotatingPointOffset: number = 40; // 旋转控制点到边框的距离
+  /** 物体默认描边颜色，默认无 */
+  public stroke: string;
+  /** 物体默认描边宽度 */
+  public strokeWidth: number = 1;
+  /** 矩阵变换 */
+  // public transformMatrix: number[];
+  /** 最小缩放值 */
+  // public minScaleLimit: number = 0.01;
+  /** 是否有控制点 */
+  public hasControls: boolean = true;
+  /** 是否有旋转控制点 */
+  public hasRotatingPoint: boolean = true;
+  /** 旋转控制点偏移量 */
+  public rotatingPointOffset: number = 40;
+  /** 移动的时候边框透明度 */
+  public borderOpacityWhenMoving: number = 0.4;
+  /** 物体是否在移动中 */
+  public isMoving: boolean = false;
+  /** 选中态的边框宽度 */
+  public borderWidth: number = 1;
+  /** 物体控制点用 stroke 还是 fill */
+  public transparentCorners: boolean = false;
+  /** 物体控制点大小，单位 px */
+  public cornerSize: number = 12;
+  /** 通过像素来检测物体而不是通过包围盒 */
+  public perPixelTargetFind: boolean = false;
 
   constructor(options) {
     this.initialize(options);
   }
 
   initialize(options) {
-    // this.setOptions(options);
+    this.setOptions(options);
+  }
+
+  setOptions(options) {
+    for (const key in options) {
+      this[key] = options[key];
+    }
   }
 
   /**

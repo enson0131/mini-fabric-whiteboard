@@ -1,11 +1,11 @@
+import { FabricObject } from "./FabricObject";
+
 interface Offset {
   left: number;
   top: number;
 }
 
-type FabricObject = any; // TODO: 临时使用 any 类型
-
-class Canvas {
+export class Canvas {
   public width: number; // 画布宽度
   public height: number; // 画布高度
 

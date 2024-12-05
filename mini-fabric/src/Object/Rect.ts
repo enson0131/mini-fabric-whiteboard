@@ -4,7 +4,7 @@ import { FabricObject } from "../FabricObject";
 /**
  * 矩形对象
  */
-class Rect extends FabricObject {
+export class Rect extends FabricObject {
   public type: string = "rect"; // 矩形标识
   /** 圆角 rx */
   public rx: number = 0;
