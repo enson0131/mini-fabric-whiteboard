@@ -1,4 +1,5 @@
 import { resolve } from "path";
+import { Point } from "./Point";
 
 const PiBy180 = Math.PI / 180; // 1弧度
 
@@ -126,5 +127,25 @@ export class Util {
         destination[properties[i]] = source[properties[i]];
       }
     }
+  }
+
+  /**
+   * 需要进一步推导看看 - 推导公式: https://jingyan.baidu.com/article/2c8c281dfbf3dd0009252a7b.html
+   * 将 point 绕 origin 旋转 radians 弧度
+   * @param {Point} point 要旋转的点
+   * @param {Point} origin 旋转中心点
+   * @param {number} radians 注意 canvas 中用的都是弧度
+   * @returns
+   */
+  static rotatePoint(point: Point, origin: Point, radians: number): Point {
+    const sin = Math.sin(radians),
+      cos = Math.cos(radians);
+
+    point.subtractEquals(origin);
+
+    const rx = point.x * cos - point.y * sin; // 矩阵运算
+    const ry = point.x * sin + point.y * cos;
+
+    return new Point(rx, ry).addEquals(origin);
   }
 }

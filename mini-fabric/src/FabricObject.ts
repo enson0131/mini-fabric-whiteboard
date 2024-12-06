@@ -1,3 +1,4 @@
+import { Point } from "./Point";
 import { Util } from "./Util";
 
 export class FabricObject {
@@ -90,8 +91,17 @@ export class FabricObject {
     ctx.save();
     // 1、坐标变换
     this.transform(ctx);
+
+    if (this.stroke) {
+      ctx.lineWidth = this.strokeWidth;
+      ctx.strokeStyle = this.stroke;
+    }
+
+    if (this.fill) {
+      ctx.fillStyle = this.fill;
+    }
+
     // 2、绘制物体
-    //
     this._render(ctx);
 
     // 如果是选中态
@@ -101,10 +111,20 @@ export class FabricObject {
       // 绘制物体四周的控制点，共⑨个
       this.drawControls(ctx);
     }
+
+    // 画自身坐标系
+    this.drawAxis(ctx);
+
     ctx.restore();
   }
 
+  /**
+   * 坐标变换
+   * 平移 -> 旋转 -> 缩放
+   * @param ctx
+   */
   transform(ctx: CanvasRenderingContext2D) {
+    const center = this.getCenterPoint();
     // 1、平移
     ctx.translate(this.left, this.top);
 
@@ -218,5 +238,63 @@ export class FabricObject {
 
     Util.populateWithProperties(this, object, propertiesToInclude);
     return object;
+  }
+
+  // TODO 这个不理解
+  drawAxis(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    const lengthRatio = 1.5;
+    const w = this.getWidth();
+    const h = this.getHeight();
+    ctx.lineWidth = this.borderWidth;
+    ctx.setLineDash([4 * lengthRatio, 3 * lengthRatio]);
+    /** 画坐标轴的时候需要把 transform 变换中的 scale 效果抵消，这样才能画出原始大小的线条 */
+    ctx.scale(1 / this.scaleX, 1 / this.scaleY);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo((w / 2) * lengthRatio, 0);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, (h / 2) * lengthRatio);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /**
+   * 获取元素的中心点
+   */
+  getCenterPoint() {
+    return this.translateToCenterPoint(
+      new Point(this.left, this.top),
+      this.originX,
+      this.originY
+    );
+  }
+
+  /** 将中心点移到变换基点 */
+  translateToCenterPoint(
+    point: Point,
+    originX: string,
+    originY: string
+  ): Point {
+    let cx = point.x,
+      cy = point.y;
+
+    if (originX === "left") {
+      cx = point.x + this.getWidth() / 2;
+    } else if (originX === "right") {
+      cx = point.x - this.getWidth() / 2;
+    }
+
+    if (originY === "top") {
+      cy = point.y + this.getHeight() / 2;
+    } else if (originY === "bottom") {
+      cy = point.y - this.getHeight() / 2;
+    }
+    const p = new Point(cx, cy);
+    if (this.angle) {
+      return Util.rotatePoint(p, point, Util.degreesToRadians(this.angle)); // 考虑旋转的场景
+    } else {
+      return p;
+    }
   }
 }
