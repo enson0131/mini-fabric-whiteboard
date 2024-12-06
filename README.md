@@ -108,6 +108,18 @@ yarn dev
 
 不过在 计算机图形学中，通过 `向量叉乘` 的方式来判断线段是否相交
 
+
+## 任意点 （x, y）绕某个点 （rx0, ry0）逆时针旋转 a 角度后的坐标为 `(x0, y0)`，公式如下：
+
+
+x0 = (x - rx0) * cos(a) - (y - ry0) * sin(a) + rx0
+y0 = (x - rx0) * sin(a) + (y - ry0) * cos(a) + ry0
+
+![alt text](mini-fabric/doc/点A绕着原点得到点B的公式.png)
+
+公式推导: https://jingyan.baidu.com/article/2c8c281dfbf3dd0009252a7b.html
+
+
 ## 如何实现编辑功能
 
 ## 如何实现撤销重做功能
