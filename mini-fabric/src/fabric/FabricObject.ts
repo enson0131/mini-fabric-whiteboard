@@ -89,6 +89,7 @@ export class FabricObject {
     if (this.width === 0 || this.height === 0 || !this.visible) return;
     // 凡是要变换坐标系或者设置画笔属性都需要用先用 save 保存和再用 restore 还原，避免影响到其他东西的绘制
     ctx.save();
+
     // 1、坐标变换
     this.transform(ctx);
 
@@ -124,9 +125,10 @@ export class FabricObject {
    * @param ctx
    */
   transform(ctx: CanvasRenderingContext2D) {
-    const center = this.getCenterPoint();
+    const center = this.getCenterPoint(); // 获取中心点
+
     // 1、平移
-    ctx.translate(this.left, this.top);
+    ctx.translate(center.x, center.y); // 先平移到中心点
 
     // 2、旋转
     ctx.rotate(Util.degreesToRadians(this.angle)); // rotate 方法的参数是弧度
@@ -264,7 +266,7 @@ export class FabricObject {
    */
   getCenterPoint() {
     return this.translateToCenterPoint(
-      new Point(this.left, this.top),
+      new Point(this.left, this.top), // 因为元素的render方法都是默认以中心点为参考的（向左上偏移一半），所以这里的中心点就是元素的左上角坐标
       this.originX,
       this.originY
     );
@@ -276,7 +278,7 @@ export class FabricObject {
     originX: string,
     originY: string
   ): Point {
-    let cx = point.x,
+    let cx = point.x, // point.x 是默认的中心点
       cy = point.y;
 
     if (originX === "left") {

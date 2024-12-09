@@ -1,4 +1,3 @@
-import { resolve } from "path";
 import { Point } from "./Point";
 
 const PiBy180 = Math.PI / 180; // 1弧度

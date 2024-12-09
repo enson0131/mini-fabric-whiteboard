@@ -39,9 +39,19 @@ export class Canvas {
   }
 
   _initStatic(el: HTMLCanvasElement, options) {
-    this.lowerCanvasEl = el;
-    console.log(`options: `, options);
+    this._objects = [];
+    this._createLowerCanvas(el);
+    this._initOptions(options);
+
+    this.calcOffset();
     // this.contextTop = this.lowerCanvasEl.getContext("2d");
+  }
+
+  _createLowerCanvas(el: HTMLCanvasElement) {
+    this.lowerCanvasEl = el;
+    Util.addClass(this.lowerCanvasEl, "lower-canvas");
+    this._applyCanvasStyle(this.lowerCanvasEl);
+    this.contextContainer = this.lowerCanvasEl.getContext("2d");
   }
 
   _initInteractive() {}
@@ -49,6 +59,7 @@ export class Canvas {
   _createCacheCanvas() {}
 
   add(...args): Canvas {
+    console.log(`args`, ...args);
     this._objects.push(...args);
     this.renderAll();
     return this;
