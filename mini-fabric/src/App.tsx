@@ -9,16 +9,17 @@ function App() {
   const canvasInstance = useRef<null>(null);
 
   useEffect(() => {
-    canvasInstance.current = new fabric.Canvas(canvasRef.current, {});
-    // canvasInstance.current.setWidth(window.innerWidth);
-    // canvasInstance.current.setHeight(window.innerHeight);
+    canvasInstance.current = new fabric.Canvas(canvasRef.current, {
+      width: window.innerWidth,
+      height: window.innerHeight,
+    });
 
     const rect = new fabric.Rect({
-      width: 200,
-      height: 100,
+      left: 0,
+      top: 0,
       fill: "red",
-      left: 100,
-      top: 100,
+      width: 200,
+      height: 200,
     });
 
     canvasInstance.current.add(rect);

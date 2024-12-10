@@ -5,11 +5,9 @@ import "./index.css";
 import Home from "./pages/Home/index.tsx";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="*" element={<Home />} />
-      </Routes>
-    </BrowserRouter>
-  </StrictMode>
+  <BrowserRouter>
+    <Routes>
+      <Route path="*" element={<Home />} />
+    </Routes>
+  </BrowserRouter>
 );

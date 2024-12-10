@@ -1,4 +1,5 @@
 import { Point } from "./Point";
+import { Offset } from "./types";
 
 const PiBy180 = Math.PI / 180; // 1弧度
 
@@ -146,5 +147,80 @@ export class Util {
     const ry = point.x * sin + point.y * cos;
 
     return new Point(rx, ry).addEquals(origin);
+  }
+
+  /** 给元素添加类名 */
+  static addClass(element: HTMLElement, className: string) {
+    if ((" " + element.className + " ").indexOf(" " + className + " ") === -1) {
+      element.className += (element.className ? " " : "") + className;
+    }
+  }
+
+  /** 给元素设置样式 */
+  static setStyle(element: HTMLElement, styles: string | Record<string, any>) {
+    const elementStyle = element.style;
+
+    if (typeof styles === "string") {
+      element.style.cssText += ";" + styles;
+      return element;
+    }
+
+    for (const property in styles) {
+      elementStyle[property] = styles[property];
+    }
+    return element;
+  }
+
+  /** 设置元素透明度 */
+  static setOpacity(element: HTMLElement, value: string) {
+    element.style.opacity = value;
+    return element;
+  }
+
+  /** 设置 css 的 userSelect 样式为 none，也就是不可选中的状态 */
+  static makeElementUnselectable(element: HTMLElement): HTMLElement {
+    element.style.userSelect = "none";
+    return element;
+  }
+
+  /** 计算元素偏移值 */
+  static getElementOffset(element): Offset {
+    let valueT = 0,
+      valueL = 0;
+    do {
+      valueT += element.offsetTop || 0; // HTMLElement.offsetTop 为只读属性，它返回当前元素相对于其 offsetParent 元素的顶部内边距的距离。
+      valueL += element.offsetLeft || 0;
+      element = element.offsetParent;
+    } while (element);
+    return { left: valueL, top: valueT };
+  }
+
+  /** 包裹元素并替换 */
+  static wrapElement(
+    element: HTMLElement,
+    wrapper: HTMLElement | string,
+    attributes
+  ) {
+    if (typeof wrapper === "string") {
+      wrapper = Util.makeElement(wrapper, attributes);
+    }
+    if (element.parentNode) {
+      element.parentNode.replaceChild(wrapper, element);
+    }
+    wrapper.appendChild(element);
+    return wrapper;
+  }
+
+  /** 新建元素并添加相应属性 */
+  static makeElement(tagName: string, attributes) {
+    const el = document.createElement(tagName);
+    for (const prop in attributes) {
+      if (prop === "class") {
+        el.className = attributes[prop];
+      } else {
+        el.setAttribute(prop, attributes[prop]);
+      }
+    }
+    return el;
   }
 }

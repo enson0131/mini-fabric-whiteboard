@@ -3,7 +3,7 @@ import { Util } from "./Util";
 
 export class FabricObject {
   public type: string; // 对象类型
-  public visible: boolean; // 是否可见
+  public visible: boolean = true; // 是否可见
 
   /** 默认水平变换中心 left | right | center */
   public originX: string = "center";
@@ -85,6 +85,7 @@ export class FabricObject {
    * @param ctx
    */
   render(ctx: CanvasRenderingContext2D) {
+    console.log("render", this.width, this.height, this.visible);
     // 看不见的物体不绘制
     if (this.width === 0 || this.height === 0 || !this.visible) return;
     // 凡是要变换坐标系或者设置画笔属性都需要用先用 save 保存和再用 restore 还原，避免影响到其他东西的绘制
@@ -125,15 +126,16 @@ export class FabricObject {
    * @param ctx
    */
   transform(ctx: CanvasRenderingContext2D) {
-    const center = this.getCenterPoint(); // 获取中心点
+    const center = this.getCenterPoint(); // 获取中心点 TODO 这里的获取方式有问题
 
+    console.log("center", center);
     // 1、平移
     ctx.translate(center.x, center.y); // 先平移到中心点
 
-    // 2、旋转
+    // // 2、旋转
     ctx.rotate(Util.degreesToRadians(this.angle)); // rotate 方法的参数是弧度
 
-    // 3、缩放
+    // // 3、缩放
     ctx.scale(this.scaleX, this.scaleY);
   }
 
