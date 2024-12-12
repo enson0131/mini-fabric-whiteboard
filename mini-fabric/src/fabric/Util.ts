@@ -88,20 +88,65 @@ export class Util {
     });
   }
 
-  /**
-   * 实现一个 AABB 包围盒
-   * @param points
-   */
-  static makeBoundingBoxFromPoints(points: any[]) {
-    const xPoints = points.map((p) => p.x);
-    const yPoints = points.map((p) => p.y);
-    const minX = Math.min(...xPoints);
-    const minY = Math.min(...yPoints);
-    const maxX = Math.max(...xPoints);
-    const maxY = Math.max(...yPoints);
-    const width = maxX - minX;
-    const height = maxY - minY;
+  // /**
+  //  * 实现一个 AABB 包围盒
+  //  * @param points
+  //  */
+  // static makeBoundingBoxFromPoints(points: any[]) {
+  //   const xPoints = points.map((p) => p.x);
+  //   const yPoints = points.map((p) => p.y);
+  //   const minX = Math.min(...xPoints);
+  //   const minY = Math.min(...yPoints);
+  //   const maxX = Math.max(...xPoints);
+  //   const maxY = Math.max(...yPoints);
+  //   const width = maxX - minX;
+  //   const height = maxY - minY;
 
+  //   return {
+  //     left: minX,
+  //     top: minY,
+  //     width,
+  //     height,
+  //   };
+  // }
+  /**
+   * Apply transform t to point p
+   * @static
+   * @memberOf fabric.util
+   * @param  {fabric.Point} p The point to transform
+   * @param  {Array} t The transform
+   * @param  {Boolean} [ignoreOffset] Indicates that the offset should not be applied
+   * @return {fabric.Point} The transformed point
+   */
+  static transformPoint(p, t, ignoreOffset?: boolean) {
+    if (ignoreOffset) {
+      return new Point(t[0] * p.x + t[2] * p.y, t[1] * p.x + t[3] * p.y);
+    }
+    return new Point(
+      t[0] * p.x + t[2] * p.y + t[4],
+      t[1] * p.x + t[3] * p.y + t[5]
+    );
+  }
+  /**
+   * Returns coordinates of points's bounding rectangle (left, top, width, height)
+   * @param {Array} points 4 points array
+   * @param {Array} [transform] an array of 6 numbers representing a 2x3 transform matrix
+   * @return {Object} Object with left, top, width, height properties
+   */
+  static makeBoundingBoxFromPoints(points, transform) {
+    if (transform) {
+      for (let i = 0; i < points.length; i++) {
+        points[i] = Util.transformPoint(points[i], transform);
+      }
+    }
+    const xPoints = [points[0].x, points[1].x, points[2].x, points[3].x],
+      minX = Math.min(...xPoints),
+      maxX = Math.max(...xPoints),
+      width = maxX - minX,
+      yPoints = [points[0].y, points[1].y, points[2].y, points[3].y],
+      minY = Math.min(...yPoints),
+      maxY = Math.max(...yPoints),
+      height = maxY - minY;
     return {
       left: minX,
       top: minY,
@@ -222,5 +267,116 @@ export class Util {
       }
     }
     return el;
+  }
+  /**
+   * given a width and height, return the size of the bounding box
+   * that can contains the box with width/height with applied transform
+   * described in options.
+   * Use to calculate the boxes around objects for controls.
+   * @memberOf fabric.util
+   * @param {Number} width
+   * @param {Number} height
+   * @param {Object} options
+   * @param {Number} options.scaleX
+   * @param {Number} options.scaleY
+   * @param {Number} options.skewX
+   * @param {Number} options.skewY
+   * @return {Object.x} width of containing
+   * @return {Object.y} height of containing
+   */
+  static sizeAfterTransform(width, height, options) {
+    const dimX = width / 2,
+      dimY = height / 2,
+      points = [
+        {
+          x: -dimX,
+          y: -dimY,
+        },
+        {
+          x: dimX,
+          y: -dimY,
+        },
+        {
+          x: -dimX,
+          y: dimY,
+        },
+        {
+          x: dimX,
+          y: dimY,
+        },
+      ],
+      transformMatrix = Util.calcDimensionsMatrix(options),
+      bbox = Util.makeBoundingBoxFromPoints(points, transformMatrix);
+    return {
+      x: bbox.width,
+      y: bbox.height,
+    };
+  }
+
+  /**
+   * Returns a transform matrix starting from an object of the same kind of
+   * the one returned from qrDecompose, useful also if you want to calculate some
+   * transformations from an object that is not enlived yet.
+   * is called DimensionsTransformMatrix because those properties are the one that influence
+   * the size of the resulting box of the object.
+   * @static
+   * @memberOf fabric.util
+   * @param  {Object} options
+   * @param  {Number} [options.scaleX]
+   * @param  {Number} [options.scaleY]
+   * @param  {Boolean} [options.flipX]
+   * @param  {Boolean} [options.flipY]
+   * @param  {Number} [options.skewX]
+   * @param  {Number} [options.skewY]
+   * @return {Number[]} transform matrix
+   */
+  static calcDimensionsMatrix(options) {
+    const scaleX = typeof options.scaleX === "undefined" ? 1 : options.scaleX;
+    const scaleY = typeof options.scaleY === "undefined" ? 1 : options.scaleY;
+    let scaleMatrix = [
+      options.flipX ? -scaleX : scaleX,
+      0,
+      0,
+      options.flipY ? -scaleY : scaleY,
+      0,
+      0,
+    ];
+    const multiply = Util.multiplyTransformMatrices;
+    const degreesToRadians = Util.degreesToRadians;
+    if (options.skewX) {
+      scaleMatrix = multiply(
+        scaleMatrix,
+        [1, 0, Math.tan(degreesToRadians(options.skewX)), 1],
+        true
+      );
+    }
+    if (options.skewY) {
+      scaleMatrix = multiply(
+        scaleMatrix,
+        [1, Math.tan(degreesToRadians(options.skewY)), 0, 1],
+        true
+      );
+    }
+    return scaleMatrix;
+  }
+
+  /**
+   * Multiply matrix A by matrix B to nest transformations
+   * @static
+   * @memberOf fabric.util
+   * @param  {Array} a First transformMatrix
+   * @param  {Array} b Second transformMatrix
+   * @param  {Boolean} is2x2 flag to multiply matrices as 2x2 matrices
+   * @return {Array} The product of the two transform matrices
+   */
+  static multiplyTransformMatrices(a, b, is2x2) {
+    return [
+      a[0] * b[0] + a[2] * b[1],
+      a[1] * b[0] + a[3] * b[1],
+      a[0] * b[2] + a[2] * b[3],
+      a[1] * b[2] + a[3] * b[3],
+      is2x2 ? 0 : a[0] * b[4] + a[2] * b[5] + a[4],
+      is2x2 ? 0 : a[1] * b[4] + a[3] * b[5] + a[5],
+    ];
   }
 }

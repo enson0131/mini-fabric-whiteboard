@@ -1,14 +1,23 @@
 import { Point } from "./Point";
 import { Util } from "./Util";
-
+const originXOffset = {
+  left: -0.5,
+  center: 0,
+  right: 0.5,
+};
+const originYOffset = {
+  top: -0.5,
+  center: 0,
+  bottom: 0.5,
+};
 export class FabricObject {
   public type: string; // 对象类型
   public visible: boolean = true; // 是否可见
 
-  /** 默认水平变换中心 left | right | center */
-  public originX: string = "center";
-  /** 默认垂直变换中心 top | bottom | center */
-  public originY: string = "center";
+  /** 默认水平变换中心 left | right | center, 对象转换的水平原点*/
+  public originX: string = "left";
+  /** 默认垂直变换中心 top | bottom | center, 对象转换的垂直原点*/
+  public originY: string = "top";
 
   public active: boolean; // 是否激活, 选中状态
   public top: number; // 对象左上角 y 坐标
@@ -16,8 +25,8 @@ export class FabricObject {
 
   public width: number; // 对象宽度
   public height: number; // 对象高度
-  public scaleX: number; // X轴 缩放比例
-  public scaleY: number; // Y轴 缩放比例
+  public scaleX: number = 1; // X轴 缩放比例
+  public scaleY: number = 1; // Y轴 缩放比例
   public angle: number; // 旋转角度
 
   /** 物体默认描边颜色，默认无 */
@@ -58,6 +67,33 @@ export class FabricObject {
   public flipX: boolean = false;
   /** 上下镜像，比如反向拉伸控制点 */
   public flipY: boolean = false;
+
+  /**
+   * When `false`, the stoke width will scale with the object.
+   * When `true`, the stroke will always match the exact pixel size entered for stroke width.
+   * this Property does not work on Text classes or drawing call that uses strokeText,fillText methods
+   * default to false
+   * @since 2.6.0
+   * @type Boolean
+   * @default false
+   * @type Boolean
+   * @default false
+   */
+  public strokeUniform: boolean = false;
+
+  /**
+   * Angle of skew on x axes of an object (in degrees)
+   * @type Number
+   * @default
+   */
+  public skewX = 0;
+
+  /**
+   * Angle of skew on y axes of an object (in degrees)
+   * @type Number
+   * @default
+   */
+  public skewY = 0;
 
   // 公共属性
   public stateProperties: string[] =
@@ -280,25 +316,133 @@ export class FabricObject {
     originX: string,
     originY: string
   ): Point {
-    let cx = point.x, // point.x 是默认的中心点
-      cy = point.y;
-
-    if (originX === "left") {
-      cx = point.x + this.getWidth() / 2;
-    } else if (originX === "right") {
-      cx = point.x - this.getWidth() / 2;
-    }
-
-    if (originY === "top") {
-      cy = point.y + this.getHeight() / 2;
-    } else if (originY === "bottom") {
-      cy = point.y - this.getHeight() / 2;
-    }
-    const p = new Point(cx, cy);
+    const p = this.translateToGivenOrigin(
+      point,
+      originX,
+      originY,
+      "center",
+      "center"
+    );
     if (this.angle) {
       return Util.rotatePoint(p, point, Util.degreesToRadians(this.angle)); // 考虑旋转的场景
     } else {
       return p;
     }
+  }
+
+  translateToGivenOrigin(
+    point: Point,
+    fromOriginX: string | number,
+    fromOriginY: string | number,
+    toOriginX: string | number,
+    toOriginY: string | number
+  ): Point {
+    let x = point.x,
+      y = point.y,
+      dim;
+    if (typeof fromOriginX === "string") {
+      fromOriginX = originXOffset[fromOriginX];
+    } else {
+      fromOriginX -= 0.5;
+    }
+
+    if (typeof toOriginX === "string") {
+      toOriginX = originXOffset[toOriginX];
+    } else {
+      toOriginX -= 0.5;
+    }
+
+    const offsetX = Number(toOriginX) - Number(fromOriginX);
+
+    if (typeof fromOriginY === "string") {
+      fromOriginY = originYOffset[fromOriginY];
+    } else {
+      fromOriginY -= 0.5;
+    }
+    if (typeof toOriginY === "string") {
+      toOriginY = originYOffset[toOriginY];
+    } else {
+      toOriginY -= 0.5;
+    }
+
+    debugger;
+    const offsetY = Number(toOriginY) - Number(fromOriginY);
+    if (offsetX || offsetY) {
+      dim = this._getTransformedDimensions();
+      x = point.x + offsetX * dim.x;
+      y = point.y + offsetY * dim.y;
+    }
+    return new Point(x, y);
+  }
+
+  /*
+   * Calculate object bounding box dimensions from its properties scale, skew.
+   * @param {Number} skewX, a value to override current skewX
+   * @param {Number} skewY, a value to override current skewY
+   * @private
+   * @return {Object} .x width dimension
+   * @return {Object} .y height dimension
+   */
+  _getTransformedDimensions(
+    paramsSkewX?: number,
+    paramsSkewY?: number
+  ): { x: number; y: number } {
+    const skewX = paramsSkewX ?? this.skewX;
+    const skewY = paramsSkewY ?? this.skewY;
+
+    let dimensions;
+    let dimX;
+    let dimY;
+
+    const noSkew = skewX === 0 && skewY === 0;
+
+    if (this.strokeUniform) {
+      dimX = this.width;
+      dimY = this.height;
+    } else {
+      dimensions = this._getNonTransformedDimensions();
+      dimX = dimensions.x;
+      dimY = dimensions.y;
+    }
+
+    if (noSkew) {
+      return this._finalizeDimensions(dimX * this.scaleX, dimY * this.scaleY);
+    }
+
+    const bbox = Util.sizeAfterTransform(dimX, dimY, {
+      scaleX: this.scaleX,
+      scaleY: this.scaleY,
+      skewX,
+      skewY,
+    });
+
+    return this._finalizeDimensions(bbox.x, bbox.y);
+  }
+
+  /*
+   * Calculate object bounding box dimensions from its properties scale, skew.
+   * @param Number width width of the bbox
+   * @param Number height height of the bbox
+   * @private
+   * @return {Object} .x finalized width dimension
+   * @return {Object} .y finalized height dimension
+   */
+  _finalizeDimensions(width, height) {
+    return this.strokeUniform
+      ? { x: width + this.strokeWidth, y: height + this.strokeWidth }
+      : { x: width, y: height };
+  }
+
+  /*
+   * Calculate object dimensions from its properties
+   * @private
+   * @return {Object} .x width dimension
+   * @return {Object} .y height dimension
+   */
+  _getNonTransformedDimensions() {
+    const strokeWidth = this.strokeWidth,
+      w = this.width + strokeWidth,
+      h = this.height + strokeWidth;
+    return { x: w, y: h };
   }
 }
