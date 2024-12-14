@@ -127,11 +127,12 @@ export class Util {
       t[1] * p.x + t[3] * p.y + t[5]
     );
   }
+
   /**
-   * Returns coordinates of points's bounding rectangle (left, top, width, height)
-   * @param {Array} points 4 points array
-   * @param {Array} [transform] an array of 6 numbers representing a 2x3 transform matrix
-   * @return {Object} Object with left, top, width, height properties
+   * 计算一个 AABB 包围盒
+   * @param points
+   * @param transform
+   * @returns
    */
   static makeBoundingBoxFromPoints(points, transform) {
     if (transform) {
