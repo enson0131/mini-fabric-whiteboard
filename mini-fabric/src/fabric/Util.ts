@@ -268,11 +268,9 @@ export class Util {
     }
     return el;
   }
+
   /**
-   * given a width and height, return the size of the bounding box
-   * that can contains the box with width/height with applied transform
-   * described in options.
-   * Use to calculate the boxes around objects for controls.
+   * 元素获取包围盒的宽高
    * @memberOf fabric.util
    * @param {Number} width
    * @param {Number} height
@@ -289,24 +287,28 @@ export class Util {
       dimY = height / 2,
       points = [
         {
+          // 左上角
           x: -dimX,
           y: -dimY,
         },
         {
+          // 右上角
           x: dimX,
           y: -dimY,
         },
         {
+          // 左下角
           x: -dimX,
           y: dimY,
         },
         {
+          // 右下角
           x: dimX,
           y: dimY,
         },
       ],
-      transformMatrix = Util.calcDimensionsMatrix(options),
-      bbox = Util.makeBoundingBoxFromPoints(points, transformMatrix);
+      transformMatrix = Util.calcDimensionsMatrix(options), // 计算变换矩阵
+      bbox = Util.makeBoundingBoxFromPoints(points, transformMatrix); // 计算包围盒
     return {
       x: bbox.width,
       y: bbox.height,
@@ -327,7 +329,7 @@ export class Util {
    * @param  {Boolean} [options.flipX]
    * @param  {Boolean} [options.flipY]
    * @param  {Number} [options.skewX]
-   * @param  {Number} [options.skewY]
+   * @param  {Number} [options.skewY]·
    * @return {Number[]} transform matrix
    */
   static calcDimensionsMatrix(options) {
@@ -346,8 +348,9 @@ export class Util {
     if (options.skewX) {
       scaleMatrix = multiply(
         scaleMatrix,
+        // Math.tan 计算倾斜角度的正切值
         [1, 0, Math.tan(degreesToRadians(options.skewX)), 1],
-        true
+        true // 因为不涉及平移，所以是 true
       );
     }
     if (options.skewY) {
@@ -361,12 +364,22 @@ export class Util {
   }
 
   /**
-   * Multiply matrix A by matrix B to nest transformations
+   * 矩阵乘法
+   * C = A × B
+   * C[i][j] = Σ A[i][k] × B[k][j]
+   * a[0] a[2] a[4]    // 第一行：a, c, e
+     a[1] a[3] a[5]    // 第二行：b, d, f
+      0     0     1     // 第三行：恒定值
+   * 
+     
+      b[0] b[2] b[4]
+      b[1] b[3] b[5]
+      0     0     1
    * @static
    * @memberOf fabric.util
    * @param  {Array} a First transformMatrix
    * @param  {Array} b Second transformMatrix
-   * @param  {Boolean} is2x2 flag to multiply matrices as 2x2 matrices
+   * @param  {Boolean} is2x2 flag 一个布尔值，指示是否只进行 2x2 矩阵乘法。
    * @return {Array} The product of the two transform matrices
    */
   static multiplyTransformMatrices(a, b, is2x2) {

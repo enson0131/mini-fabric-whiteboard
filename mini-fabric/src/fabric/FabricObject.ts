@@ -1,5 +1,23 @@
 import { Point } from "./Point";
 import { Util } from "./Util";
+
+/**
+ 引入 原点偏移量 的原因，是为了灵活处理在对象的【局部坐标系统】中，不同参考点（原点）对齐方式的转换。这是因为对象的原点可以根据需求设定为左上角、中心点、右下角等，而这些不同的对齐方式会直接影响到坐标的计算。
+
+  1 灵活定义对齐点：
+
+  在图形和动画处理中，对象的原点决定了如何定位和变换它。例如：
+  如果原点是左上角（left-top），则坐标 (0, 0) 对应对象的左上角。
+  如果原点是中心点（center-center），同样的坐标 (0, 0) 就表示对象的中心。
+    ** 通过使用偏移量，可以从一个参考原点轻松切换到另一个，而无需重新计算整个对象的全局坐标。 **
+
+  2 简化数学计算：
+
+  使用偏移量可以统一表示不同的对齐方式。例如：
+
+  left 对应 -0.5，center 对应 0，right 对应 0.5。
+  通过偏移量的差值，可以直接计算从一个原点到另一个原点的位移，避免了手动推导复杂的数学关系
+ */
 const originXOffset = {
   left: -0.5,
   center: 0,
@@ -280,7 +298,10 @@ export class FabricObject {
     return object;
   }
 
-  // TODO 这个不理解
+  /**
+   * 绘制元素坐标轴
+   * @param ctx
+   */
   drawAxis(ctx: CanvasRenderingContext2D) {
     ctx.save();
     const lengthRatio = 1.5;
@@ -303,8 +324,9 @@ export class FabricObject {
    * 获取元素的中心点
    */
   getCenterPoint() {
+    // 当下也可以简单的是直接返回 new Point(this.width / 2, this.height / 2)
     return this.translateToCenterPoint(
-      new Point(this.left, this.top), // 因为元素的render方法都是默认以中心点为参考的（向左上偏移一半），所以这里的中心点就是元素的左上角坐标
+      new Point(this.left, this.top), // 因为元素的 render 方法都是默认以中心点为参考的（向左上偏移一半），所以这里的中心点就是通过元素的左上角坐标计算出来的
       this.originX,
       this.originY
     );
@@ -330,6 +352,15 @@ export class FabricObject {
     }
   }
 
+  /**
+   * 将点从一个 fromOrigin 参考点转移到 toOrigin 参考点
+   * @param point 点
+   * @param fromOriginX 原点
+   * @param fromOriginY 原点
+   * @param toOriginX 原点
+   * @param toOriginY 原点
+   * @returns 平移后的点
+   */
   translateToGivenOrigin(
     point: Point,
     fromOriginX: string | number,
@@ -340,6 +371,8 @@ export class FabricObject {
     let x = point.x,
       y = point.y,
       dim;
+
+    // 对元素局部坐标进行转化
     if (typeof fromOriginX === "string") {
       fromOriginX = originXOffset[fromOriginX];
     } else {
@@ -365,23 +398,20 @@ export class FabricObject {
       toOriginY -= 0.5;
     }
 
-    debugger;
     const offsetY = Number(toOriginY) - Number(fromOriginY);
     if (offsetX || offsetY) {
-      dim = this._getTransformedDimensions();
+      dim = this._getTransformedDimensions(); // 获取到元素的宽高
       x = point.x + offsetX * dim.x;
       y = point.y + offsetY * dim.y;
     }
-    return new Point(x, y);
+    return new Point(x, y); // 获取到中心点坐标
   }
 
-  /*
-   * Calculate object bounding box dimensions from its properties scale, skew.
-   * @param {Number} skewX, a value to override current skewX
-   * @param {Number} skewY, a value to override current skewY
-   * @private
-   * @return {Object} .x width dimension
-   * @return {Object} .y height dimension
+  /**
+   * 获取到元素的宽高
+   * @param paramsSkewX 斜切角度
+   * @param paramsSkewY 斜切角度
+   * @returns 元素的宽高
    */
   _getTransformedDimensions(
     paramsSkewX?: number,
