@@ -37,7 +37,7 @@ export class FabricObject {
   /** 默认垂直变换中心 top | bottom | center, 对象转换的垂直原点*/
   public originY: string = "top";
 
-  public active: boolean; // 是否激活, 选中状态
+  public active: boolean = true; // 是否激活, 选中状态
   public top: number; // 对象左上角 y 坐标
   public left: number; // 对象左上角 x 坐标
 
@@ -51,6 +51,9 @@ export class FabricObject {
   public stroke: string;
   /** 物体默认描边宽度 */
   public strokeWidth: number = 1;
+
+  /** 选中态物体和边框之间的距离 */
+  public padding: number = 0;
   /** 矩阵变换 */
   // public transformMatrix: number[];
   /** 最小缩放值 */
@@ -230,12 +233,14 @@ export class FabricObject {
     );
 
     // 绘制旋转控制点 + 点和边框连接的那条线
-    const rotateHeight = (-h - strokeWidth - padding2) / 2;
-    ctx.beginPath();
-    ctx.moveTo(0, rotateHeight);
-    ctx.lineTo(0, -rotateHeight - this.rotatingPointOffset);
-    ctx.closePath();
-    ctx.stroke();
+    if (this.hasRotatingPoint && this.hasControls) {
+      let rotateHeight = (-h - strokeWidth - padding * 2) / 2;
+      ctx.beginPath();
+      ctx.moveTo(0, rotateHeight);
+      ctx.lineTo(0, rotateHeight - this.rotatingPointOffset);
+      ctx.closePath();
+      ctx.stroke();
+    }
 
     ctx.restore();
     return this;
@@ -245,7 +250,102 @@ export class FabricObject {
    * 绘制物体四周的控制点，共⑨个
    * @param ctx
    */
+  /** 绘制包围盒模型的控制点 */
   drawControls(ctx: CanvasRenderingContext2D): FabricObject {
+    if (!this.hasControls) return;
+    // 因为画布已经经过变换，所以大部分数值需要除以 scale 来抵消变换
+    let size = this.cornerSize,
+      size2 = size / 2,
+      strokeWidth2 = this.strokeWidth / 2,
+      // top 和 left 值为物体左上角的点
+      left = -(this.width / 2),
+      top = -(this.height / 2),
+      _left,
+      _top,
+      sizeX = size / this.scaleX,
+      sizeY = size / this.scaleY,
+      paddingX = this.padding / this.scaleX,
+      paddingY = this.padding / this.scaleY,
+      scaleOffsetY = size2 / this.scaleY,
+      scaleOffsetX = size2 / this.scaleX,
+      scaleOffsetSizeX = (size2 - size) / this.scaleX,
+      scaleOffsetSizeY = (size2 - size) / this.scaleY,
+      height = this.height,
+      width = this.width,
+      // 控制点是实心还是空心
+      methodName = this.transparentCorners ? "strokeRect" : "fillRect";
+
+    ctx.save();
+
+    ctx.lineWidth = this.borderWidth / Math.max(this.scaleX, this.scaleY);
+
+    ctx.globalAlpha = this.isMoving ? this.borderOpacityWhenMoving : 1;
+    ctx.strokeStyle = ctx.fillStyle = this.cornerColor;
+
+    // top-left
+    _left = left - scaleOffsetX - strokeWidth2 - paddingX;
+    _top = top - scaleOffsetY - strokeWidth2 - paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // top-right
+    _left = left + width - scaleOffsetX + strokeWidth2 + paddingX;
+    _top = top - scaleOffsetY - strokeWidth2 - paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // bottom-left
+    _left = left - scaleOffsetX - strokeWidth2 - paddingX;
+    _top = top + height + scaleOffsetSizeY + strokeWidth2 + paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // bottom-right
+    _left = left + width + scaleOffsetSizeX + strokeWidth2 + paddingX;
+    _top = top + height + scaleOffsetSizeY + strokeWidth2 + paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // middle-top
+    _left = left + width / 2 - scaleOffsetX;
+    _top = top - scaleOffsetY - strokeWidth2 - paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // middle-bottom
+    _left = left + width / 2 - scaleOffsetX;
+    _top = top + height + scaleOffsetSizeY + strokeWidth2 + paddingY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // middle-right
+    _left = left + width + scaleOffsetSizeX + strokeWidth2 + paddingX;
+    _top = top + height / 2 - scaleOffsetY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // middle-left
+    _left = left - scaleOffsetX - strokeWidth2 - paddingX;
+    _top = top + height / 2 - scaleOffsetY;
+    ctx.clearRect(_left, _top, sizeX, sizeY);
+    ctx[methodName](_left, _top, sizeX, sizeY);
+
+    // 绘制旋转控制点
+    if (this.hasRotatingPoint) {
+      _left = left + width / 2 - scaleOffsetX;
+      _top =
+        top -
+        this.rotatingPointOffset / this.scaleY -
+        sizeY / 2 -
+        strokeWidth2 -
+        paddingY;
+
+      ctx.clearRect(_left, _top, sizeX, sizeY);
+      ctx[methodName](_left, _top, sizeX, sizeY);
+    }
+
+    ctx.restore();
+
     return this;
   }
 

@@ -15,8 +15,8 @@ function App() {
     });
 
     const rect = new fabric.Rect({
-      left: 0,
-      top: 0,
+      left: 110,
+      top: 110,
       fill: "red",
       width: 200,
       height: 200,
