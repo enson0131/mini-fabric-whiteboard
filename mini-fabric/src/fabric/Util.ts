@@ -393,4 +393,66 @@ export class Util {
       is2x2 ? 0 : a[1] * b[4] + a[3] * b[5] + a[5],
     ];
   }
+
+  static addListener(element, eventName, handler) {
+    element.addEventListener(eventName, handler, false);
+  }
+  static removeListener(element, eventName, handler) {
+    element.removeEventListener(eventName, handler, false);
+  }
+
+  /** 获取鼠标的点击坐标，相对于页面左上角，注意不是画布的左上角，到时候会减掉 offset, 同时也要加上滚动条的偏移量 */
+  static getPointer(event: Event, upperCanvasEl: HTMLCanvasElement) {
+    event || (event = window.event);
+
+    let element: HTMLElement | Document = event.target as
+        | Document
+        | HTMLElement,
+      body = document.body || { scrollLeft: 0, scrollTop: 0 },
+      docElement = document.documentElement,
+      orgElement = element,
+      scrollLeft = 0,
+      scrollTop = 0,
+      firstFixedAncestor;
+
+    while (element && element.parentNode && !firstFixedAncestor) {
+      element = element.parentNode as Document | HTMLElement;
+      if (
+        element !== document &&
+        Util.getElementPosition(element as HTMLElement) === "fixed"
+      )
+        firstFixedAncestor = element;
+
+      if (
+        element !== document &&
+        orgElement !== upperCanvasEl &&
+        Util.getElementPosition(element as HTMLElement) === "absolute"
+      ) {
+        scrollLeft = 0;
+        scrollTop = 0;
+      } else if (element === document && orgElement !== upperCanvasEl) {
+        scrollLeft = body.scrollLeft || docElement.scrollLeft || 0;
+        scrollTop = body.scrollTop || docElement.scrollTop || 0;
+      } else {
+        scrollLeft += (element as HTMLElement).scrollLeft || 0;
+        scrollTop += (element as HTMLElement).scrollTop || 0;
+      }
+    }
+
+    return {
+      x: Util.pointerX(event) + scrollLeft,
+      y: Util.pointerY(event) + scrollTop,
+    };
+  }
+  /** 获取元素位置 */
+  static getElementPosition(element: HTMLElement) {
+    return window.getComputedStyle(element, null).position;
+  }
+
+  static pointerX(event) {
+    return event.clientX || 0;
+  }
+  static pointerY(event) {
+    return event.clientY || 0;
+  }
 }

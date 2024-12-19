@@ -263,18 +263,6 @@ function Home() {
     canvasInstance.current.setHeight(window.innerHeight);
     const canvas = canvasInstance.current;
 
-    // setTimeout(() => {
-    //   const rect = new fabric.Rect({
-    //     left: 0, //距离左边的距离
-    //     top: 0, //距离上边的距离
-    //     fill: "red", //填充的颜色
-    //     width: 200, //矩形宽度
-    //     height: 200, //矩形高度
-    //   });
-    //   debugger;
-    //   canvasInstance.current.add(rect);
-    // }, 2000);
-
     canvas.on("mouse:down", function (opt) {
       const evt = opt.e;
       console.log(`evt.altKey--->`, evt.altKey);
@@ -323,13 +311,6 @@ function Home() {
   }, []);
 
   useEffect(() => {
-    // var itext = new fabric.IText('This is a IText object', {
-    //   left: 100,
-    //   top: 300,
-    //   fill: '#D81B60',
-    //   strokeWidth: 2,
-    //   stroke: "#880E4F",
-    // });
     canvasInstance.current.on("mouse:dblclick", async function (event) {
       if (event.target) {
         return;

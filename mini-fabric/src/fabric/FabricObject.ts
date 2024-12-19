@@ -1,3 +1,4 @@
+import { Coords, Corner } from "./interface";
 import { Point } from "./Point";
 import { Util } from "./Util";
 
@@ -45,12 +46,17 @@ export class FabricObject {
   public height: number; // 对象高度
   public scaleX: number = 1; // X轴 缩放比例
   public scaleY: number = 1; // Y轴 缩放比例
-  public angle: number; // 旋转角度
+  public angle: number = 0; // 旋转角度
 
   /** 物体默认描边颜色，默认无 */
   public stroke: string;
   /** 物体默认描边宽度 */
   public strokeWidth: number = 1;
+
+  /** 物体缩放后的宽度 */
+  public currentWidth: number = 0;
+  /** 物体缩放后的高度 */
+  public currentHeight: number = 0;
 
   /** 选中态物体和边框之间的距离 */
   public padding: number = 0;
@@ -89,6 +95,12 @@ export class FabricObject {
   /** 上下镜像，比如反向拉伸控制点 */
   public flipY: boolean = false;
 
+  /** 物体执行变换之前的状态 */
+  public originalState;
+
+  /** 物体所在的 canvas 画布 */
+  public canvas;
+
   /**
    * When `false`, the stoke width will scale with the object.
    * When `true`, the stroke will always match the exact pixel size entered for stroke width.
@@ -116,6 +128,9 @@ export class FabricObject {
    */
   public skewY = 0;
 
+  /** 物体控制点位置，随时变化 */
+  public oCoords: Coords;
+
   // 公共属性
   public stateProperties: string[] =
     `top,left,width,height,scaleX,scaleY,flipX,flipY,angle,cornerSize,fill,originX,originY,stroke,strokeWidth,borderWidth,transformMatrix,visible`.split(
@@ -134,6 +149,18 @@ export class FabricObject {
     for (const key in options) {
       this[key] = options[key];
     }
+  }
+
+  setupState() {
+    this.originalState = {};
+    this.saveState();
+  }
+  /** 保存物体当前的状态到 originalState 中 */
+  saveState(): FabricObject {
+    this.stateProperties.forEach((prop) => {
+      this.originalState[prop] = this[prop];
+    });
+    return this;
   }
 
   /**
@@ -574,5 +601,345 @@ export class FabricObject {
       w = this.width + strokeWidth,
       h = this.height + strokeWidth;
     return { x: w, y: h };
+  }
+
+  /** 获取包围盒的四条边 */
+  _getImageLines(corner: Corner) {
+    return {
+      topline: {
+        o: corner.tl,
+        d: corner.tr,
+      },
+      rightline: {
+        o: corner.tr,
+        d: corner.br,
+      },
+      bottomline: {
+        o: corner.br,
+        d: corner.bl,
+      },
+      leftline: {
+        o: corner.bl,
+        d: corner.tl,
+      },
+    };
+  }
+  /**
+   * 射线检测法：以鼠标坐标点为参照，水平向右做一条射线，求坐标点与多条边的交点个数
+   * 如果和物体相交的个数为偶数点则点在物体外部；如果为奇数点则点在内部
+   * 不过 fabric 的点选多边形都是用于包围盒，也就是矩形，所以该方法是专门针对矩形的，并且针对矩形做了一些优化
+   */
+  _findCrossPoints(ex: number, ey: number, lines): number {
+    let b1, // 射线的斜率
+      b2, // 边的斜率
+      a1, // 射线的截距 也就是 y = b1 * x + a1 （这里的 a1）
+      a2, // 边的截距
+      xi, // 射线与边的交点
+      // yi, // 射线与边的交点
+      xcount = 0,
+      iLine; // 当前边
+
+    console.log(`lines--->`, lines);
+
+    // 遍历包围盒的四条边
+    for (let lineKey in lines) {
+      iLine = lines[lineKey];
+
+      /*
+        数学原理:
+          射线方程：y = b1x + a1
+          边界线段方程：y = b2x + a2
+          交点处：b1x + a1 = b2x + a2
+          求解x坐标：x = -(a1 - a2)/(b1 - b2)
+        */
+      // 简单计算下射线与边的交点，看式子容易晕，建议自己手动算一下
+      b1 = 0;
+      b2 = (iLine.d.y - iLine.o.y) / (iLine.d.x - iLine.o.x);
+      a1 = ey - b1 * ex;
+      a2 = iLine.o.y - b2 * iLine.o.x;
+
+      xi = -(a1 - a2) / (b1 - b2); // 将 ey 的点导入到方程中，求出交点的 x 坐标 即 xi = a1 - a2 / b2;
+      // 只需要计数 xi >= ex 的情况
+      if (xi >= ex) {
+        xcount += 1;
+      }
+      // 优化4：因为 fabric 中的多边形只需要用到矩形，所以根据矩形的特质，顶多只有两个交点，所以我们可以提前结束循环
+      if (xcount === 2) {
+        break;
+      }
+    }
+    return xcount;
+  }
+
+  /** 重新设置物体包围盒的边框和各个控制点，包括位置和大小 */
+  setCoords(): FabricObject {
+    let strokeWidth = this.strokeWidth > 1 ? this.strokeWidth : 0,
+      padding = this.padding,
+      radian = Util.degreesToRadians(this.angle);
+
+    this.currentWidth = (this.width + strokeWidth) * this.scaleX + padding * 2;
+    this.currentHeight =
+      (this.height + strokeWidth) * this.scaleY + padding * 2;
+
+    // If width is negative, make postive. Fixes path selection issue
+    // if (this.currentWidth < 0) {
+    //     this.currentWidth = Math.abs(this.currentWidth);
+    // }
+
+    // 物体中心点到顶点的斜边长度
+    // Math.sqrt() 函数返回一个数的平方根
+    // Math.pow() 函数返回基数（base）的指数（exponent）次幂，即 base^exponent。
+    let _hypotenuse = Math.sqrt(
+      // 其实就是勾股定理，获取斜边的长度
+      Math.pow(this.currentWidth / 2, 2) + Math.pow(this.currentHeight / 2, 2)
+    );
+    // 获取物体中心点到顶点的斜边与水平线之间的夹角对应的弧度
+    let _angle = Math.atan(this.currentHeight / this.currentWidth);
+    // let _angle = Math.atan2(this.currentHeight, this.currentWidth);
+
+    // offset added for rotate and scale actions
+    let offsetX = Math.cos(_angle + radian) * _hypotenuse,
+      offsetY = Math.sin(_angle + radian) * _hypotenuse,
+      sinTh = Math.sin(radian), // 旋转角度对应的正弦值
+      cosTh = Math.cos(radian); // 旋转角度对应的余弦值
+
+    let coords = this.getCenterPoint();
+
+    console.log(`coords--->`, coords, offsetX, offsetY, this.currentWidth);
+    let tl = {
+      // 左上角
+      x: coords.x - offsetX,
+      y: coords.y - offsetY,
+    };
+    let tr = {
+      // 右上角
+      x: tl.x + this.currentWidth * cosTh,
+      y: tl.y + this.currentWidth * sinTh,
+    };
+    let br = {
+      // 右下角
+      x: tr.x - this.currentHeight * sinTh,
+      y: tr.y + this.currentHeight * cosTh,
+    };
+    let bl = {
+      x: tl.x - this.currentHeight * sinTh,
+      y: tl.y + this.currentHeight * cosTh,
+    };
+    let ml = {
+      // 中左
+      x: tl.x - (this.currentHeight / 2) * sinTh,
+      y: tl.y + (this.currentHeight / 2) * cosTh,
+    };
+    let mt = {
+      // 中上
+      x: tl.x + (this.currentWidth / 2) * cosTh,
+      y: tl.y + (this.currentWidth / 2) * sinTh,
+    };
+    let mr = {
+      // 中右
+      x: tr.x - (this.currentHeight / 2) * sinTh,
+      y: tr.y + (this.currentHeight / 2) * cosTh,
+    };
+    let mb = {
+      // 中下
+      x: bl.x + (this.currentWidth / 2) * cosTh,
+      y: bl.y + (this.currentWidth / 2) * sinTh,
+    };
+    let mtr = {
+      // 中右上
+      x: tl.x + (this.currentWidth / 2) * cosTh,
+      y: tl.y + (this.currentWidth / 2) * sinTh,
+    };
+
+    // clockwise
+    this.oCoords = { tl, tr, br, bl, ml, mt, mr, mb, mtr };
+
+    // 设置控制点
+    this._setCornerCoords();
+
+    return this;
+  }
+
+  /** 重新设置物体的每个控制点，包括位置和大小 */
+  _setCornerCoords() {
+    let coords = this.oCoords,
+      radian = Util.degreesToRadians(this.angle), // 旋转角度对应的弧度
+      newTheta = Util.degreesToRadians(45 - this.angle), // 45度减去旋转角度对应的弧度
+      cornerHypotenuse = Math.sqrt(2 * Math.pow(this.cornerSize, 2)) / 2, // 控制点斜边长度的一半
+      cosHalfOffset = cornerHypotenuse * Math.cos(newTheta), // 控制点偏移量对应的余弦值
+      sinHalfOffset = cornerHypotenuse * Math.sin(newTheta), // 控制点偏移量对应的正弦值
+      sinTh = Math.sin(radian), // 旋转角度对应的正弦值
+      cosTh = Math.cos(radian); // 旋转角度对应的余弦值
+
+    coords.tl.corner = {
+      tl: {
+        x: coords.tl.x - sinHalfOffset,
+        y: coords.tl.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.tl.x + cosHalfOffset,
+        y: coords.tl.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.tl.x - cosHalfOffset,
+        y: coords.tl.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.tl.x + sinHalfOffset,
+        y: coords.tl.y + cosHalfOffset,
+      },
+    };
+
+    coords.tr.corner = {
+      tl: {
+        x: coords.tr.x - sinHalfOffset,
+        y: coords.tr.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.tr.x + cosHalfOffset,
+        y: coords.tr.y - sinHalfOffset,
+      },
+      br: {
+        x: coords.tr.x + sinHalfOffset,
+        y: coords.tr.y + cosHalfOffset,
+      },
+      bl: {
+        x: coords.tr.x - cosHalfOffset,
+        y: coords.tr.y + sinHalfOffset,
+      },
+    };
+
+    coords.bl.corner = {
+      tl: {
+        x: coords.bl.x - sinHalfOffset,
+        y: coords.bl.y - cosHalfOffset,
+      },
+      bl: {
+        x: coords.bl.x - cosHalfOffset,
+        y: coords.bl.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.bl.x + sinHalfOffset,
+        y: coords.bl.y + cosHalfOffset,
+      },
+      tr: {
+        x: coords.bl.x + cosHalfOffset,
+        y: coords.bl.y - sinHalfOffset,
+      },
+    };
+
+    coords.br.corner = {
+      tr: {
+        x: coords.br.x + cosHalfOffset,
+        y: coords.br.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.br.x - cosHalfOffset,
+        y: coords.br.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.br.x + sinHalfOffset,
+        y: coords.br.y + cosHalfOffset,
+      },
+      tl: {
+        x: coords.br.x - sinHalfOffset,
+        y: coords.br.y - cosHalfOffset,
+      },
+    };
+
+    coords.ml.corner = {
+      tl: {
+        x: coords.ml.x - sinHalfOffset,
+        y: coords.ml.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.ml.x + cosHalfOffset,
+        y: coords.ml.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.ml.x - cosHalfOffset,
+        y: coords.ml.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.ml.x + sinHalfOffset,
+        y: coords.ml.y + cosHalfOffset,
+      },
+    };
+
+    coords.mt.corner = {
+      tl: {
+        x: coords.mt.x - sinHalfOffset,
+        y: coords.mt.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.mt.x + cosHalfOffset,
+        y: coords.mt.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.mt.x - cosHalfOffset,
+        y: coords.mt.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.mt.x + sinHalfOffset,
+        y: coords.mt.y + cosHalfOffset,
+      },
+    };
+
+    coords.mr.corner = {
+      tl: {
+        x: coords.mr.x - sinHalfOffset,
+        y: coords.mr.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.mr.x + cosHalfOffset,
+        y: coords.mr.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.mr.x - cosHalfOffset,
+        y: coords.mr.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.mr.x + sinHalfOffset,
+        y: coords.mr.y + cosHalfOffset,
+      },
+    };
+
+    coords.mb.corner = {
+      tl: {
+        x: coords.mb.x - sinHalfOffset,
+        y: coords.mb.y - cosHalfOffset,
+      },
+      tr: {
+        x: coords.mb.x + cosHalfOffset,
+        y: coords.mb.y - sinHalfOffset,
+      },
+      bl: {
+        x: coords.mb.x - cosHalfOffset,
+        y: coords.mb.y + sinHalfOffset,
+      },
+      br: {
+        x: coords.mb.x + sinHalfOffset,
+        y: coords.mb.y + cosHalfOffset,
+      },
+    };
+
+    coords.mtr.corner = {
+      tl: {
+        x: coords.mtr.x - sinHalfOffset + sinTh * this.rotatingPointOffset,
+        y: coords.mtr.y - cosHalfOffset - cosTh * this.rotatingPointOffset,
+      },
+      tr: {
+        x: coords.mtr.x + cosHalfOffset + sinTh * this.rotatingPointOffset,
+        y: coords.mtr.y - sinHalfOffset - cosTh * this.rotatingPointOffset,
+      },
+      bl: {
+        x: coords.mtr.x - cosHalfOffset + sinTh * this.rotatingPointOffset,
+        y: coords.mtr.y + sinHalfOffset - cosTh * this.rotatingPointOffset,
+      },
+      br: {
+        x: coords.mtr.x + sinHalfOffset + sinTh * this.rotatingPointOffset,
+        y: coords.mtr.y + cosHalfOffset - cosTh * this.rotatingPointOffset,
+      },
+    };
   }
 }
