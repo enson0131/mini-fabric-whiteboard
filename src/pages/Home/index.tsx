@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
-import "@/lib/eraser_brush.mixin.js";
+// import "@/lib/eraser_brush.mixin.js";
 import {
   ColorPicker,
   GetProp,
@@ -13,9 +13,11 @@ import {
 } from "antd";
 import { ColorPickerProps } from "antd/es/color-picker";
 import { createInputEle } from "./utils";
-
-// console.log(fabric.version);
+console.log("version", fabric.version);
+console.log("fabric", fabric);
 // console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
+
+let zoom = 1;
 
 enum IToolTypes {
   strokeColor,
@@ -263,42 +265,28 @@ function Home() {
     canvasInstance.current.setHeight(window.innerHeight);
     const canvas = canvasInstance.current;
 
-    canvas.on("mouse:down", function (opt) {
-      const evt = opt.e;
-      console.log(`evt.altKey--->`, evt.altKey);
-      if (evt.altKey === true) {
-        this.isDragging = true;
-        this.selection = false;
-        this.lastPosX = evt.clientX;
-        this.lastPosY = evt.clientY;
-      }
-    });
-    canvas.on("mouse:move", function (opt) {
-      if (this.isDragging) {
-        const e = opt.e;
-        const vpt = this.viewportTransform;
-        vpt[4] += e.clientX - this.lastPosX; // 俩个点的位置差
-        vpt[5] += e.clientY - this.lastPosY; // 俩个点的位置差
-        this.requestRenderAll();
-        this.lastPosX = e.clientX;
-        this.lastPosY = e.clientY;
-      }
-    });
-    canvas.on("mouse:up", function () {
-      // on mouse up we want to recalculate new interaction
-      // for all objects, so we call setViewportTransform
-      this.setViewportTransform(this.viewportTransform);
-      this.isDragging = false;
-      this.selection = true;
-    });
-
     canvas.on("mouse:wheel", function (opt) {
-      const delta = opt.e.deltaY;
-      let zoom = canvas.getZoom();
-      zoom *= 0.999 ** delta;
+      console.log("opt", opt);
+      const deltaY = opt.e.deltaY;
+      const deltaX = opt.e.deltaX;
+
+      zoom *= 0.999 ** deltaY;
       if (zoom > 20) zoom = 20;
       if (zoom < 0.01) zoom = 0.01;
-      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      const vpt = this.viewportTransform;
+      console.log("vpt", vpt);
+      vpt[0] = zoom; // 在 X 轴方向上的偏移量。
+      vpt[3] = zoom; // 在 Y 轴方向上的偏移量。
+      vpt[4] += deltaX; // 俩个点的位置差
+      vpt[5] += deltaY; // 俩个点的位置差
+      this.requestRenderAll();
+      this.setViewportTransform(this.viewportTransform);
+
+      // let zoom = canvas.getZoom();
+      // zoom *= 0.999 ** delta;
+      // if (zoom > 20) zoom = 20;
+      // if (zoom < 0.01) zoom = 0.01;
+      // canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       opt.e.preventDefault();
       opt.e.stopPropagation();
     });
