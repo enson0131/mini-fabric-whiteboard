@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fabric } from "fabric";
 import styles from "./index.module.less";
-// import "@/lib/eraser_brush.mixin.js";
+import "@/lib/eraser_brush.mixin.js";
 import {
   ColorPicker,
   GetProp,
@@ -15,7 +15,7 @@ import { ColorPickerProps } from "antd/es/color-picker";
 import { createInputEle } from "./utils";
 console.log("version", fabric.version);
 console.log("fabric", fabric);
-// console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
+console.log("EraserBrush:", fabric.EraserBrush); // 检查 EraserBrush 是否可用
 
 let zoom = 1;
 
