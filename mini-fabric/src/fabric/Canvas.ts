@@ -198,40 +198,49 @@ export class Canvas {
 
   /** 处理鼠标 hover 事件和物体变换时的拖拽事件 */
   __onMouseMove(e: MouseEvent) {
-    let target, pointer;
+    const style = this.upperCanvasEl.style;
+    const target = this.findTarget(e);
 
-    let groupSelector = this._groupSelector;
-    console.log(
-      `this._currentTransform`,
-      this._currentTransform,
-      groupSelector
-    );
-
-    if (groupSelector) {
-      // 如果有拖蓝框选区域
-      // pointer = Util.getPointer(e, this.upperCanvasEl);
-      // groupSelector.left = pointer.x - this._offset.left - groupSelector.ex;
-      // groupSelector.top = pointer.y - this._offset.top - groupSelector.ey;
-      // this.renderTop();
-    } else if (!this._currentTransform) {
-      // 如果是 hover 事件，这里我们只需要改变鼠标样式，并不会重新渲染
-      let style = this.upperCanvasEl.style;
-      target = this.findTarget(e);
-
-      console.log(`target---->`, target);
-
-      if (target) {
-        this._setCursorFromEvent(e, target);
-      } else {
-        // image/text was hovered-out from, we remove its borders
-        // for (let i = this._objects.length; i--; ) {
-        //     if (this._objects[i] && !this._objects[i].active) {
-        //         this._objects[i].setActive(false);
-        //     }
-        // }
-        style.cursor = this.defaultCursor;
-      }
+    if (target) {
+      this._setCursorFromEvent(e, target);
+    } else {
+      style.cursor = this.defaultCursor;
     }
+
+    // let target, pointer;
+
+    // let groupSelector = this._groupSelector;
+    // console.log(
+    //   `this._currentTransform`,
+    //   this._currentTransform,
+    //   groupSelector
+    // );
+
+    // if (groupSelector) {
+    //   // 如果有拖蓝框选区域
+    //   // pointer = Util.getPointer(e, this.upperCanvasEl);
+    //   // groupSelector.left = pointer.x - this._offset.left - groupSelector.ex;
+    //   // groupSelector.top = pointer.y - this._offset.top - groupSelector.ey;
+    //   // this.renderTop();
+    // } else if (!this._currentTransform) {
+    //   // 如果是 hover 事件，这里我们只需要改变鼠标样式，并不会重新渲染
+    //   let style = this.upperCanvasEl.style;
+    //   target = this.findTarget(e);
+
+    //   console.log(`target---->`, target);
+
+    //   if (target) {
+    //     this._setCursorFromEvent(e, target);
+    //   } else {
+    //     // image/text was hovered-out from, we remove its borders
+    //     // for (let i = this._objects.length; i--; ) {
+    //     //     if (this._objects[i] && !this._objects[i].active) {
+    //     //         this._objects[i].setActive(false);
+    //     //     }
+    //     // }
+    //     style.cursor = this.defaultCursor;
+    // //   }
+    // }
 
     // else {
     //   // 如果是旋转、缩放、平移等操作

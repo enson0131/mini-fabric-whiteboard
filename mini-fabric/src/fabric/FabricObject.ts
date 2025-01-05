@@ -645,20 +645,35 @@ export class FabricObject {
     for (let lineKey in lines) {
       iLine = lines[lineKey];
 
-      /*
+      // 优化1: 如果射线在直线的上方，则直接返回
+      if (iLine.o.y < ey && iLine.d.y < ey) {
+        continue;
+      }
+
+      // 优化2: 如果射线在直线的下方，则直接返回
+      if (iLine.o.y > ey && iLine.d.y > ey) {
+        continue;
+      }
+
+      // 优化3: 如果直线是垂直的，则直接返回
+      if (iLine.o.x === iLine.d.x && iLine.o.x >= ex) {
+        xi = iLine.o.x;
+      } else {
+        /*
         数学原理:
           射线方程：y = b1x + a1
           边界线段方程：y = b2x + a2
           交点处：b1x + a1 = b2x + a2
           求解x坐标：x = -(a1 - a2)/(b1 - b2)
         */
-      // 简单计算下射线与边的交点，看式子容易晕，建议自己手动算一下
-      b1 = 0;
-      b2 = (iLine.d.y - iLine.o.y) / (iLine.d.x - iLine.o.x);
-      a1 = ey - b1 * ex;
-      a2 = iLine.o.y - b2 * iLine.o.x;
+        // 简单计算下射线与边的交点，看式子容易晕，建议自己手动算一下
+        b1 = 0;
+        b2 = (iLine.d.y - iLine.o.y) / (iLine.d.x - iLine.o.x);
+        a1 = ey - b1 * ex;
+        a2 = iLine.o.y - b2 * iLine.o.x;
+        xi = -(a1 - a2) / (b1 - b2); // 求俩个直接的交点，即求出交点的 x 坐标 即 xi = a1 - a2 / b2;
+      }
 
-      xi = -(a1 - a2) / (b1 - b2); // 将 ey 的点导入到方程中，求出交点的 x 坐标 即 xi = a1 - a2 / b2;
       // 只需要计数 xi >= ex 的情况
       if (xi >= ex) {
         xcount += 1;
