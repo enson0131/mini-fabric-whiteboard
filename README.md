@@ -194,6 +194,16 @@ function isBoomerang(ps: number[][]): boolean {
 console.log(isBoomerang([[1,1],[2,3],[3,2]])); // true  三个点在同一直线上
 ```
 
+## 判断两个多边形的位置关系算法
+
+https://williamic.github.io/article/algorithm-polygonIntersection/
+
+## Canvas 缓存中的性能优化
+
+- 离屏 Canvas https://www.cnblogs.com/axes/p/3567364.html?utm_source=tuicool
+
+不适合用在频繁销毁的情况
+
 ## 如何实现编辑功能
 
 ## 如何实现撤销重做功能
