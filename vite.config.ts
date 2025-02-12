@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import path from "path";
 import react from "@vitejs/plugin-react";
+import svgr from "vite-plugin-svgr";
 
 const isDev = process.env.NODE_ENV === "development";
 const sourcePath = isDev ? "/" : "/mini-fabric-whiteboard/";
@@ -12,5 +13,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
-  plugins: [react()],
+  plugins: [
+    svgr({
+      exclude: /node_modules/,
+      include: /assets\/svgs/,
+      svgrOptions: {
+        icon: true,
+      },
+    }),
+    react(),
+  ],
 });
