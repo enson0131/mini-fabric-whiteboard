@@ -51,51 +51,54 @@ function Tools(props: ITools) {
     },
   };
 
+  const commonIconConfig = {
+    className: styles["tools-item-icon"],
+  };
   const toolList = [
     {
       key: IDrawTypes.select,
-      icon: <SelectIcon className={styles["tools-item-icon"]} />,
+      icon: <SelectIcon {...commonIconConfig} />,
       text: "Select",
     },
     {
       key: IDrawTypes.pencil,
-      icon: <PenIcon className={styles["tools-item-icon"]} />,
+      icon: <PenIcon {...commonIconConfig} />,
       text: "Pen",
     },
     {
       key: IDrawTypes.line,
-      icon: <LineOutlined className={styles["tools-item-icon"]} />,
+      icon: <LineOutlined {...commonIconConfig} />,
       text: "Line",
     },
     {
       key: IDrawTypes.rect,
-      icon: <RectIcon className={styles["tools-item-icon"]} />,
+      icon: <RectIcon {...commonIconConfig} />,
       text: "Rect",
     },
     {
       key: IDrawTypes.circle,
-      icon: <CircleIcon className={styles["tools-item-icon"]} />,
+      icon: <CircleIcon {...commonIconConfig} />,
       text: "Circle",
     },
     {
       key: IDrawTypes.triangle,
-      icon: <TriangleIcon className={styles["tools-item-icon"]} />,
+      icon: <TriangleIcon {...commonIconConfig} />,
       text: "Triangle",
     },
     {
       key: IDrawTypes.text,
-      icon: <TextIcon className={styles["tools-item-icon"]} />,
+      icon: <TextIcon {...commonIconConfig} />,
       text: "Text",
     },
     {
       key: IDrawTypes.image,
-      icon: <ImageIcon className={styles["tools-item-icon"]} />,
+      icon: <ImageIcon {...commonIconConfig} />,
       text: "Image",
       render: () => {
         return (
           <Upload {...uploadProps}>
             <div className={styles["tools-item"]}>
-              <ImageIcon className={styles["tools-item-icon"]} />
+              <ImageIcon {...commonIconConfig} />
               <div className={styles["tools-item-text"]}>Image</div>
             </div>
           </Upload>
@@ -104,7 +107,7 @@ function Tools(props: ITools) {
     },
     {
       key: IDrawTypes.eraser,
-      icon: <EraserIcon className={styles["tools-item-icon"]} />,
+      icon: <EraserIcon {...commonIconConfig} />,
       text: "Eraser",
     },
   ];
