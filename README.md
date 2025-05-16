@@ -196,6 +196,11 @@ function isBoomerang(ps: number[][]): boolean {
 console.log(isBoomerang([[1,1],[2,3],[3,2]])); // true  三个点在同一直线上
 ```
 
+## 判断 2 条直线是否相交
+
+![alt text](直线相交.png)
+
+
 ## 判断两个多边形的位置关系算法
 
 https://williamic.github.io/article/algorithm-polygonIntersection/
